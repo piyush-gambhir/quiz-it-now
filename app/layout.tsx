@@ -1,14 +1,18 @@
-import "./globals.css";
+import { Inter } from '@/fonts/fonts';
+import { Providers } from '@/providers/provider';
 
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 
-import { Inter } from "@/fonts/fonts";
+import { cn } from '@/lib/utils/cn';
 
-import { Providers } from "@/providers/provider";
+import Footer from '@/components/Footer';
+import Header from '@/components/Header';
+
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: "Next.js Typescript Boilerplate",
-  description: "Next.JS Boilerplate with TypeScript and Tailwind CSS.",
+  title: 'Next.js Typescript Boilerplate',
+  description: 'Next.JS Boilerplate with TypeScript and Tailwind CSS.',
 };
 
 export default function RootLayout({
@@ -18,7 +22,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={Inter.className}>   <Providers>{children}</Providers></body>
+      <body
+        className={cn(
+          'flex flex-col min-h-screen justify-between',
+          Inter.className,
+        )}
+      >
+        <Providers>
+          <Header />
+          {children}
+          <Footer />
+        </Providers>
+      </body>
     </html>
   );
 }
