@@ -4,6 +4,8 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 
 import React from 'react';
 
+import { TooltipProvider } from '@/components/ui/tooltip';
+
 export function Providers({
   children,
 }: Readonly<{
@@ -16,7 +18,7 @@ export function Providers({
       enableSystem
       disableTransitionOnChange
     >
-      {children}
+      <TooltipProvider>{children}</TooltipProvider>
     </ThemeProvider>
   );
 }

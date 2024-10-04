@@ -5,14 +5,12 @@ import type { Metadata } from 'next';
 
 import { cn } from '@/lib/utils/cn';
 
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
-
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Next.js Typescript Boilerplate',
-  description: 'Next.JS Boilerplate with TypeScript and Tailwind CSS.',
+  title: 'QuizMaster Pro',
+  description:
+    'QuizMaster Pro is a platform that allows you to create and customize quizzes effortlessly using AI.',
 };
 
 export default function RootLayout({
@@ -22,17 +20,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={cn(
-          'flex flex-col min-h-screen justify-between',
-          Inter.className,
-        )}
-      >
-        <Providers>
-          <Header />
-          {children}
-          <Footer />
-        </Providers>
+      <body className={cn(Inter.className)}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

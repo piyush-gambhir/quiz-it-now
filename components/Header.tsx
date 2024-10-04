@@ -1,22 +1,16 @@
-'use client';
-
-import { LogIn, Menu } from 'lucide-react';
+import { Book, Menu, Sunset, Trees, Zap } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import React from 'react';
 
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -26,174 +20,294 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
-const navigation = [
-  { name: 'Home', href: '/' },
-  { name: 'Features', href: '/features' },
-  { name: 'Pricing', href: '/pricing' },
-  { name: 'About', href: '/about' },
+const subMenuItemsOne = [
+  {
+    title: 'Question Bank',
+    description: 'Access our extensive collection of quiz questions.',
+    icon: <Book className="size-5 shrink-0" />,
+  },
+  {
+    title: 'AI Quiz Generator',
+    description: 'Create quizzes quickly using our AI-powered tool.',
+    icon: <Zap className="size-5 shrink-0" />,
+  },
+  {
+    title: 'Customization',
+    description: 'Tailor quizzes to match your curriculum and style.',
+    icon: <Sunset className="size-5 shrink-0" />,
+  },
+  {
+    title: 'Support',
+    description: 'Reach out to our team or explore the FAQ section.',
+    icon: <Trees className="size-5 shrink-0" />,
+  },
 ];
 
-const resources = [
+const subMenuItemsTwo = [
   {
     title: 'Documentation',
-    href: '/docs',
-    description: 'Learn how to integrate our tools with your app',
+    description: 'Get all the information on how to use our platform.',
+    icon: <Book className="size-5 shrink-0" />,
   },
   {
-    title: 'API Reference',
-    href: '/api',
-    description: 'A complete API reference for our libraries',
+    title: 'Contact Us',
+    description: 'Have any questions? Our team is here to help.',
+    icon: <Sunset className="size-5 shrink-0" />,
   },
   {
-    title: 'Blog',
-    href: '/blog',
-    description: 'Read our latest news and articles',
+    title: 'API Status',
+    description: 'Check the current status of our services.',
+    icon: <Trees className="size-5 shrink-0" />,
+  },
+  {
+    title: 'Terms & Privacy',
+    description: 'Understand the terms and privacy policy of our service.',
+    icon: <Zap className="size-5 shrink-0" />,
   },
 ];
 
-export function EnhancedHeader() {
-  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
-  const pathname = usePathname();
-
-  const toggleLogin = () => setIsLoggedIn((prev) => !prev);
-
+const Navbar1 = () => {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        <div className="mr-4 hidden md:flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
-            <span className="hidden font-bold sm:inline-block">QuizGenius</span>
-          </Link>
-          <NavigationMenu>
-            <NavigationMenuList>
-              {navigation.map((item) => (
-                <NavigationMenuItem key={item.name}>
-                  <Link href={item.href} legacyBehavior passHref>
-                    <NavigationMenuLink
-                      className={cn(
-                        navigationMenuTriggerStyle(),
-                        pathname === item.href ? 'text-primary' : '',
-                      )}
-                    >
-                      {item.name}
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-              ))}
-              <NavigationMenuItem>
-                <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                    {resources.map((resource) => (
-                      <li key={resource.title}>
-                        <NavigationMenuLink asChild>
-                          <a
-                            href={resource.href}
-                            className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                          >
-                            <div className="text-sm font-medium leading-none">
-                              {resource.title}
-                            </div>
-                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                              {resource.description}
-                            </p>
-                          </a>
-                        </NavigationMenuLink>
-                      </li>
-                    ))}
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
-        </div>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle Menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="pr-0">
-            <Link href="/" className="flex items-center space-x-2">
-              <span className="font-bold">QuizGenius</span>
+    <section className="py-4 px-8">
+      <div>
+        <nav className="hidden justify-between lg:flex">
+          <div className="flex items-center gap-6">
+            <Link href="/" className="flex items-center gap-2">
+              <img
+                src="https://www.shadcnblocks.com/images/block/block-1.svg"
+                className="w-8"
+                alt="logo"
+              />
+              <span className="text-xl font-bold">QuizMaster Pro</span>
             </Link>
-            <nav className="flex flex-col space-y-3 mt-4">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    'text-sm font-medium transition-colors hover:text-primary',
-                    pathname === item.href
-                      ? 'text-primary'
-                      : 'text-muted-foreground',
-                  )}
-                >
-                  {item.name}
-                </Link>
-              ))}
-              <Link
-                href="/docs"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+            <div className="flex items-center">
+              <a
+                className={cn(
+                  'text-muted-foreground',
+                  navigationMenuTriggerStyle,
+                  buttonVariants({
+                    variant: 'ghost',
+                  }),
+                )}
+                href="#"
               >
-                Documentation
-              </Link>
-            </nav>
-          </SheetContent>
-        </Sheet>
-        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <div className="w-full flex-1 md:w-auto md:flex-none">
-            {/* Add search functionality here if needed */}
+                Home
+              </a>
+              <NavigationMenu>
+                <NavigationMenuList>
+                  <NavigationMenuItem className="text-muted-foreground">
+                    <NavigationMenuTrigger>
+                      <span>Features</span>
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <ul className="w-80 p-3">
+                        <NavigationMenuLink>
+                          {subMenuItemsOne.map((item, idx) => (
+                            <li key={idx}>
+                              <a
+                                className={cn(
+                                  'flex select-none gap-4 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+                                )}
+                                href="#"
+                              >
+                                {item.icon}
+                                <div>
+                                  <div className="text-sm font-semibold">
+                                    {item.title}
+                                  </div>
+                                  <p className="text-sm leading-snug text-muted-foreground">
+                                    {item.description}
+                                  </p>
+                                </div>
+                              </a>
+                            </li>
+                          ))}
+                        </NavigationMenuLink>
+                      </ul>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem className="text-muted-foreground">
+                    <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <ul className="w-80 p-3">
+                        <NavigationMenuLink>
+                          {subMenuItemsTwo.map((item, idx) => (
+                            <li key={idx}>
+                              <a
+                                className={cn(
+                                  'flex select-none gap-4 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+                                )}
+                                href="#"
+                              >
+                                {item.icon}
+                                <div>
+                                  <div className="text-sm font-semibold">
+                                    {item.title}
+                                  </div>
+                                  <p className="text-sm leading-snug text-muted-foreground">
+                                    {item.description}
+                                  </p>
+                                </div>
+                              </a>
+                            </li>
+                          ))}
+                        </NavigationMenuLink>
+                      </ul>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                </NavigationMenuList>
+              </NavigationMenu>
+
+              <a
+                className={cn(
+                  'text-muted-foreground',
+                  navigationMenuTriggerStyle,
+                  buttonVariants({
+                    variant: 'ghost',
+                  }),
+                )}
+                href="#"
+              >
+                Pricing
+              </a>
+              <a
+                className={cn(
+                  'text-muted-foreground',
+                  navigationMenuTriggerStyle,
+                  buttonVariants({
+                    variant: 'ghost',
+                  }),
+                )}
+                href="#"
+              >
+                Blog
+              </a>
+            </div>
           </div>
-          <nav className="flex items-center space-x-2">
-            {isLoggedIn ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="relative h-8 w-8 rounded-full"
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src="/avatars/01.png" alt="@johndoe" />
-                      <AvatarFallback>JD</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        John Doe
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        john@example.com
-                      </p>
+          <div className="flex gap-2">
+            <Button variant={'outline'}>Log in</Button>
+            <Button>Get Started</Button>
+          </div>
+        </nav>
+        <div className="block lg:hidden">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <img
+                src="https://www.shadcnblocks.com/images/block/block-1.svg"
+                className="w-8"
+                alt="logo"
+              />
+              <span className="text-xl font-bold">QuizMaster Pro</span>
+            </div>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant={'outline'} size={'icon'}>
+                  <Menu className="size-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle>
+                    <div className="flex items-center gap-2">
+                      <img
+                        src="https://www.shadcnblocks.com/images/block/block-1.svg"
+                        className="w-8"
+                        alt="logo"
+                      />
+                      <span className="text-xl font-bold">QuizMaster Pro</span>
                     </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={toggleLogin}>
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button onClick={toggleLogin} variant="ghost" className="h-8">
-                <LogIn className="mr-2 h-4 w-4" />
-                Sign In
-              </Button>
-            )}
-          </nav>
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="my-8 flex flex-col gap-4">
+                  <a href="#" className="font-semibold">
+                    Home
+                  </a>
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="features" className="border-b-0">
+                      <AccordionTrigger className="mb-4 py-0 font-semibold hover:no-underline">
+                        Features
+                      </AccordionTrigger>
+                      <AccordionContent className="mt-2">
+                        {subMenuItemsOne.map((item, idx) => (
+                          <a
+                            key={idx}
+                            className={cn(
+                              'flex select-none gap-4 rounded-md p-3 leading-none outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+                            )}
+                            href="#"
+                          >
+                            {item.icon}
+                            <div>
+                              <div className="text-sm font-semibold">
+                                {item.title}
+                              </div>
+                              <p className="text-sm leading-snug text-muted-foreground">
+                                {item.description}
+                              </p>
+                            </div>
+                          </a>
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="resources" className="border-b-0">
+                      <AccordionTrigger className="py-0 font-semibold hover:no-underline">
+                        Resources
+                      </AccordionTrigger>
+                      <AccordionContent className="mt-2">
+                        {subMenuItemsTwo.map((item, idx) => (
+                          <a
+                            key={idx}
+                            className={cn(
+                              'flex select-none gap-4 rounded-md p-3 leading-none outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+                            )}
+                            href="#"
+                          >
+                            {item.icon}
+                            <div>
+                              <div className="text-sm font-semibold">
+                                {item.title}
+                              </div>
+                              <p className="text-sm leading-snug text-muted-foreground">
+                                {item.description}
+                              </p>
+                            </div>
+                          </a>
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                  <a href="#" className="font-semibold">
+                    Pricing
+                  </a>
+                  <a href="#" className="font-semibold">
+                    Blog
+                  </a>
+                </div>
+                <div className="border-t pt-4">
+                  <div className="mt-2 flex flex-col gap-3">
+                    <Link href="/login">
+                      <Button variant={'outline'}>Log in</Button>
+                    </Link>
+                    <Link href="/signup">
+                      <Button>Get Started</Button>
+                    </Link>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
-    </header>
+    </section>
   );
-}
+};
+
+export default Navbar1;

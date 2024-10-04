@@ -1,42 +1,116 @@
-import Link from "next/link"
+import {
+  FaApple,
+  FaDiscord,
+  FaRedditAlien,
+  FaTelegramPlane,
+  FaTwitter,
+} from 'react-icons/fa';
 
-export default function Footer() {
+import { Separator } from '@/components/ui/separator';
+
+const sections = [
+  {
+    title: 'Product',
+    links: [
+      { name: 'Overview', href: '#' },
+      { name: 'Pricing', href: '#' },
+      { name: 'Quiz Templates', href: '#' },
+      { name: 'Features', href: '#' },
+      { name: 'AI Quiz Generator', href: '#' },
+      { name: 'Integrations', href: '#' },
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      { name: 'About Us', href: '#' },
+      { name: 'Team', href: '#' },
+      { name: 'Blog', href: '#' },
+      { name: 'Careers', href: '#' },
+      { name: 'Contact', href: '#' },
+      { name: 'Privacy Policy', href: '#' },
+    ],
+  },
+  {
+    title: 'Resources',
+    links: [
+      { name: 'Help Center', href: '#' },
+      { name: 'Community', href: '#' },
+      { name: 'API Documentation', href: '#' },
+    ],
+  },
+  {
+    title: 'Legal',
+    links: [
+      { name: 'Terms of Service', href: '#' },
+      { name: 'Privacy Policy', href: '#' },
+    ],
+  },
+];
+
+const Footer = () => {
   return (
-    <footer className="bg-muted py-8">
-      <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-4 gap-8">
-          <div>
-            <h3 className="font-semibold mb-4">QuizGenius</h3>
-            <p className="text-sm text-muted-foreground">Transform your content into engaging quizzes with the power of AI.</p>
+    <section className="py-24 px-8">
+      <div className="container mx-auto">
+        <footer>
+          <div className="flex flex-col justify-between gap-8 md:flex-row md:items-center">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center">
+              <p className="text-lg font-medium text-primary">
+                Take your learning experience to the next level.
+              </p>
+            </div>
           </div>
-          <div>
-            <h4 className="font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2">
-              <li><Link href="#features" className="text-sm text-muted-foreground hover:underline">Features</Link></li>
-              <li><Link href="#how-it-works" className="text-sm text-muted-foreground hover:underline">How It Works</Link></li>
-              <li><Link href="#pricing" className="text-sm text-muted-foreground hover:underline">Pricing</Link></li>
-            </ul>
+          <Separator className="my-14" />
+          <div className="grid gap-8 grid-cols-2 lg:grid-cols-4">
+            {sections.map((section, sectionIdx) => (
+              <div key={sectionIdx}>
+                <h3 className="mb-4 font-bold text-primary">{section.title}</h3>
+                <ul className="space-y-4 text-muted-foreground">
+                  {section.links.map((link, linkIdx) => (
+                    <li
+                      key={linkIdx}
+                      className="font-medium hover:text-primary"
+                    >
+                      <a href={link.href}>{link.name}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            <div>
+              <h3 className="mb-4 mt-8 font-bold text-primary">Social</h3>
+              <ul className="flex items-center space-x-6 text-muted-foreground">
+                <li className="font-medium hover:text-primary">
+                  <a href="#">
+                    <FaDiscord className="size-6" />
+                  </a>
+                </li>
+                <li className="font-medium hover:text-primary">
+                  <a href="#">
+                    <FaRedditAlien className="size-6" />
+                  </a>
+                </li>
+                <li className="font-medium hover:text-primary">
+                  <a href="#">
+                    <FaTwitter className="size-6" />
+                  </a>
+                </li>
+                <li className="font-medium hover:text-primary">
+                  <a href="#">
+                    <FaTelegramPlane className="size-6" />
+                  </a>
+                </li>
+              </ul>
+            </div>
           </div>
-          <div>
-            <h4 className="font-semibold mb-4">Legal</h4>
-            <ul className="space-y-2">
-              <li><Link href="#" className="text-sm text-muted-foreground hover:underline">Terms of Service</Link></li>
-              <li><Link href="#" className="text-sm text-muted-foreground hover:underline">Privacy Policy</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-4">Connect</h4>
-            <ul className="space-y-2">
-              <li><Link href="#" className="text-sm text-muted-foreground hover:underline">Twitter</Link></li>
-              <li><Link href="#" className="text-sm text-muted-foreground hover:underline">LinkedIn</Link></li>
-              <li><Link href="#" className="text-sm text-muted-foreground hover:underline">Facebook</Link></li>
-            </ul>
-          </div>
-        </div>
-        <div className="mt-8 pt-8 border-t border-muted-foreground/20 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} QuizGenius. All rights reserved.
-        </div>
+          <Separator className="my-14" />
+          <p className="text-sm text-muted-foreground text-center">
+            © 2024 QuizMaster Pro. All rights reserved.
+          </p>
+        </footer>
       </div>
-    </footer>
-  )
-}
+    </section>
+  );
+};
+
+export default Footer;
