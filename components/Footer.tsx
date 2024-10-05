@@ -105,7 +105,7 @@ const Footer = () => {
           </div>
           <Separator className="my-14" />
           <p className="text-sm text-muted-foreground text-center">
-            © 2024 QuizMaster Pro. All rights reserved.
+            © 2024 Quiz Master. All rights reserved.
           </p>
         </footer>
       </div>

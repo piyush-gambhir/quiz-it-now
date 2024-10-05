@@ -11,12 +11,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+import SignInWithGitHub from '@/components/auth/SignInWithGitHub';
+import SignInWithGoogle from '@/components/auth/SignInWithGoogle';
+
 export const description =
   "A login form with email and password. There's an option to login with Google and a link to sign up if you don't have an account.";
 
-export function LoginForm() {
+export default function LoginForm() {
   return (
-    <Card className="mx-auto max-w-sm">
+    <Card className="mx-auto max-w-sm shadow-none border-none">
       <CardHeader>
         <CardTitle className="text-2xl">Login</CardTitle>
         <CardDescription>
@@ -46,9 +49,8 @@ export function LoginForm() {
           <Button type="submit" className="w-full">
             Login
           </Button>
-          <Button variant="outline" className="w-full">
-            Login with Google
-          </Button>
+          <SignInWithGoogle />
+          <SignInWithGitHub />
         </div>
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{' '}

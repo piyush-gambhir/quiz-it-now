@@ -2,15 +2,16 @@ import { Inter } from '@/fonts/fonts';
 import { Providers } from '@/providers/provider';
 
 import type { Metadata } from 'next';
+import React from 'react';
 
 import { cn } from '@/lib/utils/cn';
 
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'QuizMaster Pro',
+  title: 'Quiz Master',
   description:
-    'QuizMaster Pro is a platform that allows you to create and customize quizzes effortlessly using AI.',
+    'Quiz Masteris a platform that allows you to create and customize quizzes effortlessly using AI.',
 };
 
 export default function RootLayout({

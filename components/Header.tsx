@@ -86,7 +86,7 @@ const Navbar1 = () => {
                 className="w-8"
                 alt="logo"
               />
-              <span className="text-xl font-bold">QuizMaster Pro</span>
+              <span className="text-xl font-bold">Quiz Master</span>
             </Link>
             <div className="flex items-center">
               <a
@@ -205,7 +205,7 @@ const Navbar1 = () => {
                 className="w-8"
                 alt="logo"
               />
-              <span className="text-xl font-bold">QuizMaster Pro</span>
+              <span className="text-xl font-bold">Quiz Master</span>
             </div>
             <Sheet>
               <SheetTrigger asChild>
@@ -222,7 +222,7 @@ const Navbar1 = () => {
                         className="w-8"
                         alt="logo"
                       />
-                      <span className="text-xl font-bold">QuizMaster Pro</span>
+                      <span className="text-xl font-bold">Quiz Master</span>
                     </div>
                   </SheetTitle>
                 </SheetHeader>
