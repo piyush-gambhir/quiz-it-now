@@ -1,8 +1,14 @@
-import { Book, Menu, Sunset, Trees, Zap } from 'lucide-react';
+'use client';
+
+import { Book, LogOut, Menu, Sunset, Trees, User, Zap } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
-import React from 'react';
+import { useRouter } from 'next/navigation';
+import React, { useEffect } from 'react';
 
 import { cn } from '@/lib/utils';
+
+import { useAuthSession } from '@/hooks/auth/useSession';
 
 import {
   Accordion,
@@ -10,7 +16,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -33,21 +48,25 @@ const subMenuItemsOne = [
     title: 'Question Bank',
     description: 'Access our extensive collection of quiz questions.',
     icon: <Book className="size-5 shrink-0" />,
+    href: '/question-bank',
   },
   {
     title: 'AI Quiz Generator',
     description: 'Create quizzes quickly using our AI-powered tool.',
     icon: <Zap className="size-5 shrink-0" />,
+    href: '/ai-quiz-generator',
   },
   {
     title: 'Customization',
     description: 'Tailor quizzes to match your curriculum and style.',
     icon: <Sunset className="size-5 shrink-0" />,
+    href: '/customization',
   },
   {
     title: 'Support',
     description: 'Reach out to our team or explore the FAQ section.',
     icon: <Trees className="size-5 shrink-0" />,
+    href: '/support',
   },
 ];
 
@@ -56,40 +75,55 @@ const subMenuItemsTwo = [
     title: 'Documentation',
     description: 'Get all the information on how to use our platform.',
     icon: <Book className="size-5 shrink-0" />,
+    href: '/documentation',
   },
   {
     title: 'Contact Us',
     description: 'Have any questions? Our team is here to help.',
     icon: <Sunset className="size-5 shrink-0" />,
+    href: '/contact',
   },
   {
     title: 'API Status',
     description: 'Check the current status of our services.',
     icon: <Trees className="size-5 shrink-0" />,
+    href: '/api-status',
   },
   {
     title: 'Terms & Privacy',
     description: 'Understand the terms and privacy policy of our service.',
     icon: <Zap className="size-5 shrink-0" />,
+    href: '/terms-and-privacy',
   },
 ];
 
-const Navbar1 = () => {
+const Header = () => {
+  const session = useAuthSession();
+
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    router.push('/logout');
+  };
+
+  useEffect(() => {}, [session]);
   return (
     <section className="py-4 px-8">
       <div>
         <nav className="hidden justify-between lg:flex">
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2">
-              <img
+              <Image
                 src="https://www.shadcnblocks.com/images/block/block-1.svg"
                 className="w-8"
                 alt="logo"
+                width={32}
+                height={32}
               />
               <span className="text-xl font-bold">Quiz Master</span>
             </Link>
             <div className="flex items-center">
-              <a
+              <Link
                 className={cn(
                   'text-muted-foreground',
                   navigationMenuTriggerStyle,
@@ -97,10 +131,10 @@ const Navbar1 = () => {
                     variant: 'ghost',
                   }),
                 )}
-                href="#"
+                href="/"
               >
                 Home
-              </a>
+              </Link>
               <NavigationMenu>
                 <NavigationMenuList>
                   <NavigationMenuItem className="text-muted-foreground">
@@ -112,11 +146,11 @@ const Navbar1 = () => {
                         <NavigationMenuLink>
                           {subMenuItemsOne.map((item, idx) => (
                             <li key={idx}>
-                              <a
+                              <Link
                                 className={cn(
                                   'flex select-none gap-4 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
                                 )}
-                                href="#"
+                                href={item.href}
                               >
                                 {item.icon}
                                 <div>
@@ -127,7 +161,7 @@ const Navbar1 = () => {
                                     {item.description}
                                   </p>
                                 </div>
-                              </a>
+                              </Link>
                             </li>
                           ))}
                         </NavigationMenuLink>
@@ -141,11 +175,11 @@ const Navbar1 = () => {
                         <NavigationMenuLink>
                           {subMenuItemsTwo.map((item, idx) => (
                             <li key={idx}>
-                              <a
+                              <Link
                                 className={cn(
                                   'flex select-none gap-4 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
                                 )}
-                                href="#"
+                                href={item.href}
                               >
                                 {item.icon}
                                 <div>
@@ -156,7 +190,7 @@ const Navbar1 = () => {
                                     {item.description}
                                   </p>
                                 </div>
-                              </a>
+                              </Link>
                             </li>
                           ))}
                         </NavigationMenuLink>
@@ -166,7 +200,7 @@ const Navbar1 = () => {
                 </NavigationMenuList>
               </NavigationMenu>
 
-              <a
+              <Link
                 className={cn(
                   'text-muted-foreground',
                   navigationMenuTriggerStyle,
@@ -174,11 +208,11 @@ const Navbar1 = () => {
                     variant: 'ghost',
                   }),
                 )}
-                href="#"
+                href="/pricing"
               >
                 Pricing
-              </a>
-              <a
+              </Link>
+              <Link
                 className={cn(
                   'text-muted-foreground',
                   navigationMenuTriggerStyle,
@@ -189,21 +223,62 @@ const Navbar1 = () => {
                 href="#"
               >
                 Blog
-              </a>
+              </Link>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant={'outline'}>Log in</Button>
-            <Button>Get Started</Button>
-          </div>
+          {session?.status === 'unauthenticated' ? (
+            <div className="flex gap-2">
+              <Link href="/login">
+                <Button variant={'outline'}>Log in</Button>
+              </Link>
+              <Link href="/register">
+                <Button>Get Started</Button>
+              </Link>
+            </div>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <Avatar>
+                  <AvatarImage
+                    src={
+                      session?.data?.user?.image ||
+                      'https://github.com/shadcn.png'
+                    }
+                  />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <Link href="/profile">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuSeparator />
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </nav>
         <div className="block lg:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img
+              <Image
                 src="https://www.shadcnblocks.com/images/block/block-1.svg"
-                className="w-8"
+                className=""
                 alt="logo"
+                width={32}
+                height={32}
               />
               <span className="text-xl font-bold">Quiz Master</span>
             </div>
@@ -217,7 +292,7 @@ const Navbar1 = () => {
                 <SheetHeader>
                   <SheetTitle>
                     <div className="flex items-center gap-2">
-                      <img
+                      <Image
                         src="https://www.shadcnblocks.com/images/block/block-1.svg"
                         className="w-8"
                         alt="logo"
@@ -227,9 +302,9 @@ const Navbar1 = () => {
                   </SheetTitle>
                 </SheetHeader>
                 <div className="my-8 flex flex-col gap-4">
-                  <a href="#" className="font-semibold">
+                  <Link href="/" className="font-semibold">
                     Home
-                  </a>
+                  </Link>
                   <Accordion type="single" collapsible className="w-full">
                     <AccordionItem value="features" className="border-b-0">
                       <AccordionTrigger className="mb-4 py-0 font-semibold hover:no-underline">
@@ -237,12 +312,12 @@ const Navbar1 = () => {
                       </AccordionTrigger>
                       <AccordionContent className="mt-2">
                         {subMenuItemsOne.map((item, idx) => (
-                          <a
+                          <Link
                             key={idx}
                             className={cn(
                               'flex select-none gap-4 rounded-md p-3 leading-none outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
                             )}
-                            href="#"
+                            href={item.href}
                           >
                             {item.icon}
                             <div>
@@ -253,7 +328,7 @@ const Navbar1 = () => {
                                 {item.description}
                               </p>
                             </div>
-                          </a>
+                          </Link>
                         ))}
                       </AccordionContent>
                     </AccordionItem>
@@ -263,12 +338,12 @@ const Navbar1 = () => {
                       </AccordionTrigger>
                       <AccordionContent className="mt-2">
                         {subMenuItemsTwo.map((item, idx) => (
-                          <a
+                          <Link
                             key={idx}
                             className={cn(
                               'flex select-none gap-4 rounded-md p-3 leading-none outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
                             )}
-                            href="#"
+                            href={item.href}
                           >
                             {item.icon}
                             <div>
@@ -279,28 +354,38 @@ const Navbar1 = () => {
                                 {item.description}
                               </p>
                             </div>
-                          </a>
+                          </Link>
                         ))}
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
-                  <a href="#" className="font-semibold">
+                  <Link href="/pricing" className="font-semibold">
                     Pricing
-                  </a>
-                  <a href="#" className="font-semibold">
+                  </Link>
+                  <Link href="/blog" className="font-semibold">
                     Blog
-                  </a>
+                  </Link>
                 </div>
-                <div className="border-t pt-4">
-                  <div className="mt-2 flex flex-col gap-3">
-                    <Link href="/login">
-                      <Button variant={'outline'}>Log in</Button>
-                    </Link>
-                    <Link href="/signup">
-                      <Button>Get Started</Button>
-                    </Link>
+                {session?.status === 'unauthenticated' ? (
+                  <div className="border-t pt-4">
+                    <div className="mt-2 flex flex-col gap-3">
+                      <Link href="/login">
+                        <Button variant={'outline'}>Log in</Button>
+                      </Link>
+                      <Link href="/signup">
+                        <Button>Get Started</Button>
+                      </Link>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="border-t pt-4">
+                    <div className="mt-2 flex flex-col gap-3">
+                      <Link href="/profile">
+                        <Button variant={'outline'}>Profile</Button>
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </SheetContent>
             </Sheet>
           </div>
@@ -310,4 +395,4 @@ const Navbar1 = () => {
   );
 };
 
-export default Navbar1;
+export default Header;

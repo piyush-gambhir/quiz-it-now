@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
@@ -13,8 +11,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-// import SignInWithGoogle from "@/components/auth/SignInWithGoogle"
-// import SignInWithGitHub from "@/components/auth/SignInWithGitHub"
+import SignInWithGitHub from '@/components/auth/SignInWithGitHub';
+import SignInWithGoogle from '@/components/auth/SignInWithGoogle';
 
 export const description =
   "A sign up form with first name, last name, email and password inside a card. There's an option to sign up with GitHub and a link to login if you already have an account";
@@ -56,12 +54,12 @@ export default function LoginForm() {
           <Button type="submit" className="w-full">
             Create an account
           </Button>
-          {/* <SignInWithGoogle />
-          <SignInWithGitHub /> */}
+          <SignInWithGoogle />
+          <SignInWithGitHub />
         </div>
         <div className="mt-4 text-center text-sm">
           Already have an account?{' '}
-          <Link href="#" className="underline">
+          <Link href="/login" className="underline">
             Sign in
           </Link>
         </div>

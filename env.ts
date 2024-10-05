@@ -19,6 +19,7 @@ export const env = createEnv({
     POSTGRES_HOST: z.string(),
     POSTGRES_PASSWORD: z.string(),
     POSTGRES_DATABASE: z.string(),
+    NEXTAUTH_SECRET: z.string(),
   },
 
   /**
@@ -46,6 +47,7 @@ export const env = createEnv({
     POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD,
     POSTGRES_DATABASE: process.env.POSTGRES_DATABASE,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
   },
   /**
    Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

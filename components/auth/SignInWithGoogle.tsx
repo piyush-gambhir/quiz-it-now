@@ -1,5 +1,7 @@
 import { signIn } from '@/auth';
 
+import { FaGoogle } from 'react-icons/fa';
+
 import { Button } from '@/components/ui/button';
 
 export default function SignInWithGoogle() {
@@ -10,7 +12,8 @@ export default function SignInWithGoogle() {
         await signIn('google');
       }}
     >
-      <Button variant="outline" className="w-full" type="submit">
+      <Button variant="outline" className="w-full flex gap-x-2" type="submit">
+        <FaGoogle />
         Login with Google
       </Button>
     </form>

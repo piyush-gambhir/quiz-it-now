@@ -6,6 +6,9 @@ import React from 'react';
 
 import { cn } from '@/lib/utils/cn';
 
+import Footer from '@/components/Footer';
+import Header from '@/components/Header';
+
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -22,7 +25,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={cn(Inter.className)}>
-        <Providers>{children}</Providers>
+        <Providers>
+          <Header />
+          {children}
+          <Footer />
+        </Providers>
       </body>
     </html>
   );
