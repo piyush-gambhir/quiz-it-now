@@ -1,6 +1,5 @@
 'use client';
 
-// Import useRouter from Next.js
 import { CornerDownLeft, FileText, Link, Paperclip } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -17,73 +16,48 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-const LoadingModal = ({ isVisible }: { isVisible: boolean }) => {
-  if (!isVisible) return null;
-
-  return (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-        <h2 className="text-xl font-semibold mb-4">Generating Questions...</h2>
-        <p className="text-gray-600">
-          Please wait while we process your request.
-        </p>
-      </div>
-    </div>
-  );
-};
+import LoadingModal from '@/components/common/LoadingModal';
 
 export default function QuizGeneratorPage() {
   const [text, setText] = useState('');
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState<File | null>(null);
   const [link, setLink] = useState('');
-  const [questions, setQuestions] = useState([]);
+  const [questions, setQuestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [inputType, setInputType] = useState('text'); // "text", "file", "link"
+  const [error, setError] = useState<string | null>(null);
+  const [inputType, setInputType] = useState('text');
   const [numberOfQuestions, setNumberOfQuestions] = useState(3);
-  const textareaRef = useRef(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  const router = useRouter(); // Initialize useRouter for navigation
+  const router = useRouter();
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setQuestions([]);
     setError(null);
 
-    let content = text;
-    let type = 'text';
-
-    if (inputType === 'link') {
-      content = link;
-      type = 'link';
-    } else if (inputType === 'file' && file) {
-      content = file.name;
-      type = 'file';
-    }
-
     try {
       const generatedQuestions = await generateQuiz({
-        input: content,
-        inputType: type,
+        input: text,
+        inputType: inputType,
         numberOfQuestions: numberOfQuestions,
       });
-      setQuestions(generatedQuestions);
-
-      // Redirect to a new page upon successful question generation
-      router.push('/questions'); // Replace '/questions' with your desired route
+      if (Array.isArray(generatedQuestions)) {
+        setQuestions(generatedQuestions);
+        router.push('/questions');
+      }
     } catch (error) {
       setError('Failed to generate questions. Please try again.');
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Adjust the height of the Textarea based on content
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -93,8 +67,7 @@ export default function QuizGeneratorPage() {
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
-      <LoadingModal isVisible={loading} />{' '}
-      {/* Show the loading modal if loading */}
+      <LoadingModal isOpen={loading} message="Generating Questions" />
       <main className="w-full max-w-4xl px-4">
         <form
           className="relative overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
@@ -109,7 +82,7 @@ export default function QuizGeneratorPage() {
               placeholder="Paste your link here..."
               value={link}
               onChange={(e) => setLink(e.target.value)}
-              className="border-0 p-3 shadow-none focus-visible:ring-0 w-full h-[200px]" // Match textarea dimensions
+              className="border-0 p-3 shadow-none focus-visible:ring-0 w-full h-[200px]"
             />
           ) : inputType === 'file' ? (
             <div className="border-0 p-3 w-full h-[200px] flex items-center justify-center bg-gray-100">
@@ -194,7 +167,7 @@ export default function QuizGeneratorPage() {
                 type="number"
                 id="num-questions"
                 value={numberOfQuestions}
-                onChange={(e) => setNumberOfQuestions(e.target.value)}
+                onChange={(e) => setNumberOfQuestions(Number(e.target.value))}
                 min="1"
                 max="20"
                 className="w-16"
@@ -202,7 +175,7 @@ export default function QuizGeneratorPage() {
             </div>
 
             <Button type="submit" size="sm" className="ml-auto gap-1.5">
-              {loading ? 'Generating...' : 'Send Message'}
+              {loading ? 'Generating' : 'Generate'}
               {!loading && <CornerDownLeft className="size-3.5" />}
             </Button>
           </div>

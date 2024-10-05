@@ -1,6 +1,5 @@
 import {
   DEFAULT_LANDING_PAGE,
-  apiAuthPrefix,
   authRoutes,
   publicRoutes,
 } from '@/routes';
@@ -14,22 +13,18 @@ import { getServerSession } from '@/lib/auth/get-session';
 export async function middleware(req: NextRequest) {
   const { pathname, origin, search } = req.nextUrl;
 
+  // Skip middleware checks for static files and API routes
   if (
     pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||  // Skip authentication for all API routes
     pathname.includes('.') ||
     pathname === '/favicon.ico'
   ) {
     return NextResponse.next();
   }
 
-  const isApiAuthRoute = pathname.startsWith(apiAuthPrefix);
   const isAuthRoute = authRoutes.includes(pathname);
   const isPublicRoute = publicRoutes.includes(pathname);
-
-  // Allow access to API authentication routes without checks
-  if (isApiAuthRoute) {
-    return NextResponse.next();
-  }
 
   // Retrieve the session to check authentication status
   const session = await getServerSession();

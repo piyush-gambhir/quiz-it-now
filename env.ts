@@ -10,6 +10,7 @@ export const env = createEnv({
   server: {
     NODE_ENV: z.enum(['development', 'test', 'production']),
     MONGODB_URI: z.string(),
+    MONGODB_DB: z.string(),
     PRISMA_ACCELERATE_MONGODB_URI: z.string(),
     POSTGRES_URL: z.string(),
     POSTGRES_PRISMA_URL: z.string(),
@@ -19,7 +20,7 @@ export const env = createEnv({
     POSTGRES_HOST: z.string(),
     POSTGRES_PASSWORD: z.string(),
     POSTGRES_DATABASE: z.string(),
-    NEXTAUTH_SECRET: z.string(),
+    AUTH_SECRET: z.string(),
   },
 
   /**
@@ -38,6 +39,7 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     MONGODB_URI: process.env.MONGODB_URI,
     PRISMA_ACCELERATE_MONGODB_URI: process.env.PRISMA_ACCELERATE_MONGODB_URI,
+    MONGODB_DB: process.env.MONGODB_DB,
     POSTGRES_URL: process.env.POSTGRES_URL,
     POSTGRES_PRISMA_URL: process.env.POSTGRES_PRISMA_URL,
     POSTGRES_URL_NO_SSL: process.env.POSTGRES_URL_NO_SSL,
@@ -47,7 +49,7 @@ export const env = createEnv({
     POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD,
     POSTGRES_DATABASE: process.env.POSTGRES_DATABASE,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+    AUTH_SECRET: process.env.AUTH_SECRET,
   },
   /**
    Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
