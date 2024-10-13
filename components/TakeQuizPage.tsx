@@ -48,7 +48,7 @@ export default function TakeQuizPage({ quizData }: { quizData: QuizData }) {
 
   const calculateScore = () => {
     let correctAnswers = 0;
-    quizData.questions.forEach((question) => {
+    quizData?.questions.forEach((question) => {
       if (userAnswers[question.id] === question.answer) {
         correctAnswers++;
       }
@@ -66,7 +66,7 @@ export default function TakeQuizPage({ quizData }: { quizData: QuizData }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {quizData.questions.map((question, index) => (
+          {quizData?.questions.map((question, index) => (
             <div key={question.id} className="space-y-4">
               <h3 className="text-lg font-medium">
                 Question {index + 1}: {question.question}
