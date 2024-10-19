@@ -3,6 +3,9 @@
 import { Eye, Play, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
+import { useQueryParams } from '@/hooks/useQueryParams';
+
+// Import the custom hook
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,44 +28,28 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-// Mock data for quizzes
-const mockQuizzes = Array.from({ length: 50 }, (_, i) => ({
-  id: `quiz-${i + 1}`,
-  title: `Quiz ${i + 1}`,
-  createdAt: new Date(
-    Date.now() - Math.floor(Math.random() * 10000000000),
-  ).toISOString(),
-  questionsCount: Math.floor(Math.random() * 20) + 1,
-  category: [
-    'General Knowledge',
-    'Science',
-    'History',
-    'Literature',
-    'Technology',
-  ][Math.floor(Math.random() * 5)],
-}));
-
-export default function QuizzesPage() {
-  const [currentPage, setCurrentPage] = useState(1);
+export default function QuizzesPage({ quizzes }: { quizzes: Quiz[] }) {
+  const { queryParams, setQueryParam } = useQueryParams();
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(queryParams?.page as string) || 1,
+  );
   const [searchTerm, setSearchTerm] = useState('');
   const itemsPerPage = 10;
 
-  const filteredQuizzes = mockQuizzes.filter((quiz) =>
-    quiz.title.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
-
-  const totalPages = Math.ceil(filteredQuizzes.length / itemsPerPage);
+  const totalPages = Math.ceil((quizzes?.length || 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentQuizzes = filteredQuizzes.slice(startIndex, endIndex);
+  const currentQuizzes = quizzes?.slice(startIndex, endIndex) || [];
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    setQueryParam('page', page.toString());
   };
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
+    setQueryParam('page', '1');
   };
 
   const handleView = (id: string) => {
@@ -82,13 +69,13 @@ export default function QuizzesPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8 px-4">
+        <Card className="shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Quizzes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockQuizzes.length}</div>
+            <div className="text-2xl font-bold">{quizzes?.length || 0}</div>
             <p className="text-xs text-muted-foreground">
               Across all categories
             </p>
@@ -97,7 +84,7 @@ export default function QuizzesPage() {
         {/* Add more summary cards here if needed */}
       </div>
 
-      <Card>
+      <Card className="shadow-none border-none">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Quiz Management</CardTitle>
         </CardHeader>
@@ -125,34 +112,34 @@ export default function QuizzesPage() {
               </TableHeader>
               <TableBody>
                 {currentQuizzes.map((quiz) => (
-                  <TableRow key={quiz.id}>
-                    <TableCell className="font-medium">{quiz.title}</TableCell>
+                  <TableRow key={quiz?.id}>
+                    <TableCell className="font-medium">{quiz?.title}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{quiz.category}</Badge>
+                      <Badge variant="secondary">{quiz?.category}</Badge>
                     </TableCell>
                     <TableCell>
-                      {new Date(quiz.createdAt).toLocaleDateString()}
+                      {new Date(quiz?.createdAt).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>{quiz.questionsCount}</TableCell>
+                    <TableCell>{quiz?.questionsCount}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleView(quiz.id)}
+                        onClick={() => handleView(quiz?.id)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleTake(quiz.id)}
+                        onClick={() => handleTake(quiz?.id)}
                       >
                         <Play className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDelete(quiz.id)}
+                        onClick={() => handleDelete(quiz?.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

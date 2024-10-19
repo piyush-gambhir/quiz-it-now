@@ -34,7 +34,6 @@ interface QuizData {
 }
 
 export default function TakeQuizPage({ quizData }: { quizData: QuizData }) {
-  console.log(quizData);
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
   const [showResults, setShowResults] = useState(false);
 
@@ -48,7 +47,7 @@ export default function TakeQuizPage({ quizData }: { quizData: QuizData }) {
 
   const calculateScore = () => {
     let correctAnswers = 0;
-    quizData?.questions.forEach((question) => {
+    quizData?.questions?.forEach((question) => {
       if (userAnswers[question.id] === question.answer) {
         correctAnswers++;
       }
@@ -66,14 +65,14 @@ export default function TakeQuizPage({ quizData }: { quizData: QuizData }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {quizData?.questions.map((question, index) => (
-            <div key={question.id} className="space-y-4">
+          {quizData?.questions?.map((question, index) => (
+            <div key={question?.id} className="space-y-4">
               <h3 className="text-lg font-medium">
                 Question {index + 1}: {question.question}
               </h3>
               <RadioGroup
                 onValueChange={(value) =>
-                  handleAnswerChange(question.id, value)
+                  handleAnswerChange(question?.id, value)
                 }
                 disabled={showResults}
               >
@@ -84,17 +83,17 @@ export default function TakeQuizPage({ quizData }: { quizData: QuizData }) {
                   >
                     <RadioGroupItem
                       value={option}
-                      id={`${question.id}-${optionIndex}`}
-                      checked={userAnswers[question.id] === option}
+                      id={`${question?.id}-${optionIndex}`}
+                      checked={userAnswers[question?.id] === option}
                     />
-                    <Label htmlFor={`${question.id}-${optionIndex}`}>
+                    <Label htmlFor={`${question?.id}-${optionIndex}`}>
                       {option}
                     </Label>
                     {showResults && option === question.answer && (
                       <CheckCircle2 className="text-green-500 ml-2" />
                     )}
                     {showResults &&
-                      userAnswers[question.id] === option &&
+                      userAnswers[question?.id] === option &&
                       option !== question.answer && (
                         <XCircle className="text-red-500 ml-2" />
                       )}
@@ -118,7 +117,7 @@ export default function TakeQuizPage({ quizData }: { quizData: QuizData }) {
             <div className="w-full text-center">
               <p className="text-lg font-medium">
                 Your Score: {calculateScore()} out of{' '}
-                {quizData.questions.length}
+                {quizData?.questions?.length}
               </p>
             </div>
           )}

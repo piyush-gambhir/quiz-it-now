@@ -6,6 +6,8 @@ import { useEffect, useRef, useState } from 'react';
 
 import { generateQuiz } from '@/actions/quiz';
 
+import { putToS3 } from '@/lib/aws/s3/put-to-s3';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,11 +45,40 @@ export default function QuizGeneratorPage() {
     setQuestions([]);
     setError(null);
 
+    let input = '';
+    switch (inputType) {
+      case 'text':
+        input = text;
+        break;
+      case 'file':
+        if (file) {
+          try {
+            const fileBuffer = await file.arrayBuffer();
+            const fileName = `uploads/${Date.now()}-${file.name}`;
+            await putToS3(
+              'quiz-master-s3',
+              fileName,
+              Buffer.from(fileBuffer),
+            );
+            input = fileName;
+          } catch (error) {
+            console.error('Error uploading file to S3:', error);
+            setError('Failed to upload file. Please try again.');
+            setLoading(false);
+            return;
+          }
+        }
+        break;
+      case 'link':
+        input = link;
+        break;
+    }
+
     try {
       const generatedQuestions = await generateQuiz({
-        input: text,
-        inputType: inputType,
-        numberOfQuestions: numberOfQuestions,
+        input,
+        inputType,
+        numberOfQuestions,
       });
       if (Array.isArray(generatedQuestions)) {
         setQuestions(generatedQuestions);
@@ -55,6 +86,8 @@ export default function QuizGeneratorPage() {
       }
     } catch (error) {
       setError('Failed to generate questions. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,6 +97,57 @@ export default function QuizGeneratorPage() {
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 400)}px`;
     }
   }, [text]);
+
+  const renderInput = () => {
+    switch (inputType) {
+      case 'link':
+        return (
+          <Input
+            id="link-input"
+            placeholder="Paste your link here..."
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            className="border-0 p-3 shadow-none focus-visible:ring-0 w-full h-[200px]"
+          />
+        );
+      case 'file':
+        return (
+          <div
+            className="cursor-pointer border-0 p-3 w-full h-[200px] flex items-center justify-center bg-gray-200"
+            onClick={() => document.getElementById('file-input')?.click()}
+          >
+            {file ? (
+              <span>{file.name}</span>
+            ) : (
+              <span className="text-center">Click to upload a file</span>
+            )}
+            <input
+              id="file-input"
+              type="file"
+              onChange={handleFileChange}
+              className="hidden"
+              accept=".pdf,.docx,image/*,audio/*,video/*"
+            />
+          </div>
+        );
+      default:
+        return (
+          <Textarea
+            id="message"
+            placeholder="Type your message here..."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            ref={textareaRef}
+            className="resize-none border-0 p-3 shadow-none focus-visible:ring-0"
+            style={{
+              minHeight: '200px',
+              maxHeight: '400px',
+              overflowY: text.length > 100 ? 'scroll' : 'hidden',
+            }}
+          />
+        );
+    }
+  };
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
@@ -76,50 +160,13 @@ export default function QuizGeneratorPage() {
           <Label htmlFor="message" className="sr-only">
             Message
           </Label>
-          {inputType === 'link' ? (
-            <Input
-              id="link-input"
-              placeholder="Paste your link here..."
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              className="border-0 p-3 shadow-none focus-visible:ring-0 w-full h-[200px]"
-            />
-          ) : inputType === 'file' ? (
-            <div className="border-0 p-3 w-full h-[200px] flex items-center justify-center bg-gray-100">
-              {file ? (
-                <span>{file.name}</span>
-              ) : (
-                <Label htmlFor="file-input" className="text-center">
-                  Click to upload a file
-                </Label>
-              )}
-              <input
-                id="file-input"
-                type="file"
-                onChange={handleFileChange}
-                className="hidden"
-                accept=".pdf,.docx,image/*,audio/*,video/*"
-              />
-            </div>
-          ) : (
-            <Textarea
-              id="message"
-              placeholder="Type your message here..."
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              ref={textareaRef}
-              className="resize-none border-0 p-3 shadow-none focus-visible:ring-0"
-              style={{
-                maxHeight: '400px',
-                overflowY: text.length > 100 ? 'scroll' : 'hidden',
-              }}
-            />
-          )}
+          {renderInput()}
 
-          <div className="flex items-center p-3 pt-0 gap-2">
+          <div className="flex items-center px-3 py-4 gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  type="button"
                   variant="ghost"
                   size="icon"
                   onClick={() => setInputType('text')}
@@ -134,6 +181,7 @@ export default function QuizGeneratorPage() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  type="button"
                   variant="ghost"
                   size="icon"
                   onClick={() => setInputType('file')}
@@ -148,6 +196,7 @@ export default function QuizGeneratorPage() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  type="button"
                   variant="ghost"
                   size="icon"
                   onClick={() => setInputType('link')}

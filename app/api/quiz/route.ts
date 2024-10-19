@@ -2,7 +2,7 @@ import { db } from '@/lib/mongo/client';
 
 export async function GET(request: Request) {
   try {
-    // Parse the URL to get query parameters
+  
     const url = new URL(request.url);
     const userId = url.searchParams.get('userId');
     const page = parseInt(url.searchParams.get('page') ?? '1'); // Default to page 1
