@@ -108,7 +108,7 @@ const Header = () => {
 
   useEffect(() => {}, [session]);
   return (
-    <section className="py-4 px-8">
+    <header className="sticky top-0 z-50 py-4 px-8 bg-white">
       <div>
         <nav className="hidden justify-between lg:flex">
           <div className="flex items-center gap-6">
@@ -391,7 +391,7 @@ const Header = () => {
           </div>
         </div>
       </div>
-    </section>
+    </header>
   );
 };
 

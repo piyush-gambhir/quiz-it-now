@@ -15,6 +15,20 @@ export async function generateQuiz({
 }) {
   try {
     const session = await getServerSession();
+    const response = await fetch(
+      `${env.NEXT_PUBLIC_APP_URL}/api/quiz/generate`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: session?.user?.id,
+          input,
+          inputType,
+          numberOfQuestions,
+        }),
+      },
+    );
+
+    return response.json().then((data) => data.data);
   } catch (error) {
     console.error('Error generating questions:', error);
     throw error;
@@ -40,5 +54,5 @@ export async function getQuizById({ quizId }: { quizId: string }) {
   const response = await fetch(
     `${env.NEXT_PUBLIC_APP_URL}/api/quiz/${quizId}?userId=${session?.user?.id}`,
   );
-  return response.json();
+  return response.json().then((data) => data.data);
 }

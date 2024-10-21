@@ -45,7 +45,8 @@ export async function POST(request: Request) {
       throw new Error(`Failed to generate questions: ${errorText}`);
     }
 
-    const data = await response.json();
+    const aiResponse = await response.json();
+
     const database = await db;
     const collection = database.collection('quizzes'); // Use your collection name here
 
@@ -54,11 +55,14 @@ export async function POST(request: Request) {
     const quizData = {
       quizId,
       userId,
-      input,
-      inputType,
-      numberOfQuestions,
-      questions: data || [],
+      input: {
+        data: input,
+        type: inputType,
+      },
+      model: aiResponse?.data?.model ?? null,
+      quiz: aiResponse?.data?.quiz ?? null,
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     await collection.insertOne(quizData);
@@ -93,3 +97,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

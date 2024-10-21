@@ -20,25 +20,49 @@ export async function GET(
     const collection = database.collection('quizzes'); // Use your collection name here
 
     // Fetch the quiz from the MongoDB collection using the `quizId`
-    const quiz = await collection.findOne({ quizId: quizId, userId: userId });
+    const response = await collection.findOne({
+      quizId: quizId,
+      userId: userId,
+    });
 
-    if (!quiz) {
+    if (!response) {
       return new Response(
-        JSON.stringify({ error: `No quiz found with quizId: ${quizId}` }),
+        JSON.stringify({
+          success: false,
+          statusCode: 404,
+          message: `No quiz found with quizId: ${quizId}`,
+          data: null,
+          error: {
+            code: 404,
+            message: `No quiz found with quizId: ${quizId}`,
+          },
+        }),
         { status: 404, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
     // Return the quiz data as a JSON response
-    return new Response(JSON.stringify(quiz), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        statusCode: 200,
+        message: 'Quiz fetched successfully',
+        data: response,
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    );
   } catch (error) {
     // Handle any errors that occur during the process
     return new Response(
       JSON.stringify({
-        error: error.message ?? 'An unexpected error occurred',
+        success: false,
+        statusCode: 500,
+        message: 'Failed to fetch quiz',
+        data: null,
+        error: {
+          code: 500,
+          message: error?.message,
+        },
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } },
     );

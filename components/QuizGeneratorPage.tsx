@@ -55,11 +55,7 @@ export default function QuizGeneratorPage() {
           try {
             const fileBuffer = await file.arrayBuffer();
             const fileName = `uploads/${Date.now()}-${file.name}`;
-            await putToS3(
-              'quiz-master-s3',
-              fileName,
-              Buffer.from(fileBuffer),
-            );
+            await putToS3('quiz-master-s3', fileName, Buffer.from(fileBuffer));
             input = fileName;
           } catch (error) {
             console.error('Error uploading file to S3:', error);
@@ -80,10 +76,8 @@ export default function QuizGeneratorPage() {
         inputType,
         numberOfQuestions,
       });
-      if (Array.isArray(generatedQuestions)) {
-        setQuestions(generatedQuestions);
-        router.push('/questions');
-      }
+
+      router.push(`/quiz/${generatedQuestions?.quizId}`);
     } catch (error) {
       setError('Failed to generate questions. Please try again.');
     } finally {
