@@ -107,6 +107,8 @@ const Header = () => {
   };
 
   useEffect(() => {}, [session]);
+
+  console.log(session);
   return (
     <header className="sticky top-0 z-50 py-4 px-8 bg-white">
       <div>
@@ -366,7 +368,15 @@ const Header = () => {
                     Blog
                   </Link>
                 </div>
-                {session?.status === 'unauthenticated' ? (
+                {session?.status === 'authenticated' ? (
+                  <div className="border-t pt-4">
+                    <div className="mt-2 flex flex-col gap-3">
+                      <Link href="/profile">
+                        <Button variant={'outline'}>Profile</Button>
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
                   <div className="border-t pt-4">
                     <div className="mt-2 flex flex-col gap-3">
                       <Link href="/login">
@@ -374,14 +384,6 @@ const Header = () => {
                       </Link>
                       <Link href="/signup">
                         <Button>Get Started</Button>
-                      </Link>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="border-t pt-4">
-                    <div className="mt-2 flex flex-col gap-3">
-                      <Link href="/profile">
-                        <Button variant={'outline'}>Profile</Button>
                       </Link>
                     </div>
                   </div>

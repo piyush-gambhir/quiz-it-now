@@ -13,7 +13,7 @@ export async function generateQuiz({
   input: any;
   inputType: any;
   numberOfQuestions: number;
-  model: string;
+  model?: string;
 }) {
   try {
     const session = await getServerSession();

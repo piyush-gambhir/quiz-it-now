@@ -15,7 +15,7 @@ export async function Providers({
   const authSession = await auth();
 
   // Only render NextAuthSessionProvider if session is not null
-  return authSession ? (
+  return (
     <NextAuthSessionProvider session={authSession as Session}>
       <ThemeProvider
         attribute="class"
@@ -26,14 +26,5 @@ export async function Providers({
         <TooltipProvider>{children}</TooltipProvider>
       </ThemeProvider>
     </NextAuthSessionProvider>
-  ) : (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="light"
-      enableSystem
-      disableTransitionOnChange
-    >
-      <TooltipProvider>{children}</TooltipProvider>
-    </ThemeProvider>
   );
 }
