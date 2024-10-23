@@ -7,16 +7,18 @@ import { getServerSession } from '@/lib/auth/get-session';
 export async function generateQuiz({
   input,
   inputType,
-  numberOfQuestions,
+  numberOfQuestions = 5,
+  model = 'mistralai/Mixtral-8x7B-Instruct-v0.1',
 }: {
   input: any;
   inputType: any;
   numberOfQuestions: number;
+  model: string;
 }) {
   try {
     const session = await getServerSession();
     const response = await fetch(
-      `${env.NEXT_PUBLIC_APP_URL}/api/quiz/generate`,
+      `${env.NEXT_PUBLIC_APP_URL}/api/quiz/generate/ai`,
       {
         method: 'POST',
         body: JSON.stringify({
@@ -24,6 +26,7 @@ export async function generateQuiz({
           input,
           inputType,
           numberOfQuestions,
+          model,
         }),
       },
     );
