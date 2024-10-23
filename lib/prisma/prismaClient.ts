@@ -3,11 +3,15 @@ import { withAccelerate } from '@prisma/extension-accelerate';
 
 let prisma: PrismaClient;
 
-if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient().$extends(withAccelerate());
+const createPrismaClient = () => {
+  return new PrismaClient().$extends(withAccelerate());
+};
+
+if (process.env.ENVIRONMENT === 'production') {
+  prisma = createPrismaClient();
 } else {
   if (!globalThis.prisma) {
-    globalThis.prisma = new PrismaClient().$extends(withAccelerate());
+    globalThis.prisma = createPrismaClient();
   }
   prisma = globalThis.prisma;
 }
