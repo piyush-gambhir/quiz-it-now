@@ -1,11 +1,10 @@
 'use client';
 
 import { Eye, Play, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useQueryParams } from '@/hooks/useQueryParams';
 
-// Import the custom hook
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,28 +27,42 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+interface Quiz {
+  id: string;
+  title: string;
+  category: string;
+  createdAt: string;
+  questionsCount: number;
+}
+
 export default function QuizzesPage({ quizzes }: { quizzes: Quiz[] }) {
-  const { queryParams, setQueryParam } = useQueryParams();
+  const [queryParams, setQueryParams] = useQueryParams();
   const [currentPage, setCurrentPage] = useState(
-    parseInt(queryParams?.page as string) || 1,
+    parseInt(queryParams.page || '1'),
   );
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(queryParams.search || '');
   const itemsPerPage = 10;
 
-  const totalPages = Math.ceil((quizzes?.length || 0) / itemsPerPage);
+  useEffect(() => {
+    setQueryParams({ page: currentPage.toString(), search: searchTerm });
+  }, [currentPage, searchTerm, setQueryParams]);
+
+  const filteredQuizzes = quizzes.filter((quiz) =>
+    quiz.title.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
+  const totalPages = Math.ceil(filteredQuizzes.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentQuizzes = quizzes?.slice(startIndex, endIndex) || [];
+  const currentQuizzes = filteredQuizzes.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    setQueryParam('page', page.toString());
   };
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
     setCurrentPage(1);
-    setQueryParam('page', '1');
   };
 
   const handleView = (id: string) => {
@@ -75,7 +88,7 @@ export default function QuizzesPage({ quizzes }: { quizzes: Quiz[] }) {
             <CardTitle className="text-sm font-medium">Total Quizzes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{quizzes?.length || 0}</div>
+            <div className="text-2xl font-bold">{quizzes.length}</div>
             <p className="text-xs text-muted-foreground">
               Across all categories
             </p>
@@ -112,34 +125,34 @@ export default function QuizzesPage({ quizzes }: { quizzes: Quiz[] }) {
               </TableHeader>
               <TableBody>
                 {currentQuizzes.map((quiz) => (
-                  <TableRow key={quiz?.id}>
-                    <TableCell className="font-medium">{quiz?.title}</TableCell>
+                  <TableRow key={quiz.id}>
+                    <TableCell className="font-medium">{quiz.title}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{quiz?.category}</Badge>
+                      <Badge variant="secondary">{quiz.category}</Badge>
                     </TableCell>
                     <TableCell>
-                      {new Date(quiz?.createdAt).toLocaleDateString()}
+                      {new Date(quiz.createdAt).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>{quiz?.questionsCount}</TableCell>
+                    <TableCell>{quiz.questionsCount}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleView(quiz?.id)}
+                        onClick={() => handleView(quiz.id)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleTake(quiz?.id)}
+                        onClick={() => handleTake(quiz.id)}
                       >
                         <Play className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDelete(quiz?.id)}
+                        onClick={() => handleDelete(quiz.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -155,7 +168,9 @@ export default function QuizzesPage({ quizzes }: { quizzes: Quiz[] }) {
                 <PaginationItem>
                   <PaginationPrevious
                     onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
+                    className={
+                      currentPage === 1 ? 'pointer-events-none opacity-50' : ''
+                    }
                   />
                 </PaginationItem>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(
@@ -173,7 +188,11 @@ export default function QuizzesPage({ quizzes }: { quizzes: Quiz[] }) {
                 <PaginationItem>
                   <PaginationNext
                     onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
+                    className={
+                      currentPage === totalPages
+                        ? 'pointer-events-none opacity-50'
+                        : ''
+                    }
                   />
                 </PaginationItem>
               </PaginationContent>

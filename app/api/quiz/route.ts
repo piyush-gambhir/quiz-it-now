@@ -2,7 +2,6 @@ import { db } from '@/lib/mongo/client';
 
 export async function GET(request: Request) {
   try {
-  
     const url = new URL(request.url);
     const userId = url.searchParams.get('userId');
     const page = parseInt(url.searchParams.get('page') ?? '1'); // Default to page 1
@@ -63,10 +62,16 @@ export async function GET(request: Request) {
       { status: 200, headers: { 'Content-Type': 'application/json' } },
     );
   } catch (error) {
-    // Return a standard error response for unexpected server errors
+    let errorMessage = 'An unexpected error occurred';
+    
+    // Check if error is an instance of Error and has a message
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
     return new Response(
       JSON.stringify({
-        error: error.message || 'An unexpected error occurred',
+        error: errorMessage,
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } },
     );

@@ -83,7 +83,7 @@ export default function TermsOfServicePage() {
             <h2 className="text-3xl font-semibold mb-4">6. Modifications</h2>
             <p className="text-lg">
               We reserve the right to modify or replace these Terms at any time.
-              If a revision is material, we will provide at least 30 days'
+              If a revision is material, we will provide at least 30 days&apos;
               notice prior to any new terms taking effect.
             </p>
           </section>

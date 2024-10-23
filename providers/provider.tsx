@@ -1,7 +1,8 @@
 import { auth } from '@/auth';
 import { NextAuthSessionProvider } from '@/providers/NextAuthSessionProvider';
-import { ThemeProvider } from '@/providers/ThemeProvider';
 
+import { Session } from 'next-auth';
+import { ThemeProvider } from 'next-themes';
 import React from 'react';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -12,8 +13,10 @@ export async function Providers({
   children: React.ReactNode;
 }>) {
   const authSession = await auth();
-  return (
-    <NextAuthSessionProvider session={authSession}>
+
+  // Only render NextAuthSessionProvider if session is not null
+  return authSession ? (
+    <NextAuthSessionProvider session={authSession as Session}>
       <ThemeProvider
         attribute="class"
         defaultTheme="light"
@@ -23,5 +26,14 @@ export async function Providers({
         <TooltipProvider>{children}</TooltipProvider>
       </ThemeProvider>
     </NextAuthSessionProvider>
+  ) : (
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <TooltipProvider>{children}</TooltipProvider>
+    </ThemeProvider>
   );
 }

@@ -42,6 +42,13 @@ export async function GET() {
       },
     );
   } catch (error) {
+    let errorMessage = 'An unexpected error occurred';
+
+    // Check if error is an instance of Error and has a message
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
     return new Response(
       JSON.stringify({
         success: false,
@@ -50,7 +57,7 @@ export async function GET() {
         data: null,
         error: {
           code: 500,
-          message: error.message || 'An unexpected error occurred',
+          message: errorMessage,
         },
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } },

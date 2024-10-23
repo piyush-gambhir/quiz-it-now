@@ -12,6 +12,7 @@ export async function GET(
         { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
+
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
@@ -52,16 +53,23 @@ export async function GET(
       { status: 200, headers: { 'Content-Type': 'application/json' } },
     );
   } catch (error) {
+    let errorMessage = 'Failed to fetch quiz';
+
+    // Ensure the error object is an instance of Error before accessing its message
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
     // Handle any errors that occur during the process
     return new Response(
       JSON.stringify({
         success: false,
         statusCode: 500,
-        message: 'Failed to fetch quiz',
+        message: errorMessage,
         data: null,
         error: {
           code: 500,
-          message: error?.message,
+          message: errorMessage,
         },
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } },

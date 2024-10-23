@@ -30,5 +30,4 @@ export const NeueMontreal = localFont({
     },
   ],
   display: "swap",
-  variable: "display",
 });

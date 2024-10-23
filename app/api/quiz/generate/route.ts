@@ -46,7 +46,6 @@ export async function POST(request: Request) {
     }
 
     const aiResponse = await response.json();
-    console.log(aiResponse);
     const database = await db;
     const collection = database.collection('quizzes'); // Use your collection name here
 
@@ -81,16 +80,23 @@ export async function POST(request: Request) {
       { status: 200, headers: { 'Content-Type': 'application/json' } },
     );
   } catch (error) {
+    let errorMessage = 'Failed to generate quiz';
+
+    // Check if the error is an instance of Error and has a message
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
     // Catch and return any errors that occur during the process
     return new Response(
       JSON.stringify({
         success: false,
         statusCode: 500,
-        message: 'Failed to generate quiz',
+        message: errorMessage,
         data: null,
         error: {
           code: 500,
-          message: error?.message,
+          message: errorMessage,
         },
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } },
