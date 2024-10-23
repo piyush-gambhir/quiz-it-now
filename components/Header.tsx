@@ -120,7 +120,7 @@ const Header = () => {
                 width={32}
                 height={32}
               />
-              <span className="text-xl font-bold">Quiz Master</span>
+              <span className="text-xl font-bold">QuizItNow</span>
             </Link>
             <div className="flex items-center">
               <Link

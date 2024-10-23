@@ -15,10 +15,7 @@ const HeroSection = () => {
           <span className="mr-2 flex size-8 shrink-0 items-center justify-center rounded-full bg-accent">
             <BookOpen className="size-4" />
           </span>
-          <p className="">
-            Discover engaging and interactive quizzes with AI-generated
-            questions!
-          </p>
+          <p className="">Instant quiz generation from any content source.</p>
         </Badge>
         <h1 className="mb-6 text-4xl font-bold leading-none tracking-tighter md:text-[7vw] lg:text-8xl">
           Transform Learning with AI-Powered Quizzes.
