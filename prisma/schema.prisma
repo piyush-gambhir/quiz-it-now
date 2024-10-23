@@ -1,6 +1,6 @@
 datasource db {
   provider = "mongodb"
-  url = env("PRISMA_ACCELERATE_MONGODB_URI") // uses connection pooling
+  url = env("MONGODB_URI") // uses connection pooling
 }
 
  generator client {
