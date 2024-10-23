@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     }
 
     const aiResponse = await response.json();
-
+    console.log(aiResponse);
     const database = await db;
     const collection = database.collection('quizzes'); // Use your collection name here
 
@@ -59,8 +59,8 @@ export async function POST(request: Request) {
         data: input,
         type: inputType,
       },
-      model: aiResponse?.data?.model ?? null,
-      quiz: aiResponse?.data?.quiz ?? null,
+      model: aiResponse?.data?.model,
+      quiz: aiResponse?.data?.quiz,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -97,4 +97,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
