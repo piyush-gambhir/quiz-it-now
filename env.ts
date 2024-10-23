@@ -9,6 +9,7 @@ export const env = createEnv({
    */
   server: {
     NODE_ENV: z.enum(['development', 'test', 'production']),
+    ENVIRONMENT: z.enum(['development', 'test', 'production']),
     MONGODB_URI: z.string(),
     MONGODB_DB: z.string(),
     AUTH_SECRET: z.string(),
@@ -29,6 +30,7 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
+    ENVIRONMENT: process.env.ENVIRONMENT,
     NODE_ENV: process.env.NODE_ENV,
     MONGODB_URI: process.env.MONGODB_URI,
     MONGODB_DB: process.env.MONGODB_DB,
