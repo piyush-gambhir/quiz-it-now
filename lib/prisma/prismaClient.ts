@@ -1,10 +1,8 @@
 import { PrismaClient } from '@prisma/client';
-import { withAccelerate } from '@prisma/extension-accelerate';
 
 // Helper function to create a PrismaClient
 const createPrismaClient = (): PrismaClient => {
-  // Cast the extended client back to PrismaClient type
-  return new PrismaClient().$extends(withAccelerate()) as PrismaClient;
+  return new PrismaClient();
 };
 
 let prisma: PrismaClient;
