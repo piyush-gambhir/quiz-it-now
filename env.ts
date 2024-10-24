@@ -14,7 +14,6 @@ export const env = createEnv({
     AUTH_SECRET: z.string(),
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),
-    GROQ_API_KEY: z.string(),
     HUGGINGFACE_API_KEY: z.string(),
   },
 
@@ -38,7 +37,6 @@ export const env = createEnv({
     AUTH_SECRET: process.env.AUTH_SECRET,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-    GROQ_API_KEY: process.env.GROQ_API_KEY,
     HUGGINGFACE_API_KEY: process.env.HUGGINGFACE_API_KEY,
   },
   /**
