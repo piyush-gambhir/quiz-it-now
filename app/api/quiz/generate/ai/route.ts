@@ -1,22 +1,22 @@
 import { env } from '@/env';
 import { HfInference } from '@huggingface/inference';
 
+import multer from 'multer';
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 
 import { db } from '@/lib/mongo/client';
 import { generateUUIDv4 } from '@/lib/utils/generateUUID';
 
-// Define the shape of the request payload
 interface GenerateQuizRequest {
-  input: string;
+  input: any;
+  inputType?: 'text' | 'url' | 'file';
   numberOfQuestions?: number;
   model?: string;
   difficulty?: 'Easy' | 'Medium' | 'Hard' | 'God Mode';
   userId: string;
 }
 
-// Define the shape of the quiz response
 interface QuizResponse {
   model: string;
   quiz: {
@@ -40,7 +40,6 @@ interface QuizQuestion {
   tags: string[];
 }
 
-// Define the shape of the LLM response
 interface LLMResponse {
   title: string;
   description: string;
@@ -50,7 +49,6 @@ interface LLMResponse {
   questions: QuizQuestion[];
 }
 
-// Utility function to build the prompt
 const buildPrompt = (
   text: string,
   numberOfQuestions: number,
@@ -139,31 +137,23 @@ const buildPrompt = (
   `;
 };
 
-// Utility function to format and validate JSON
 const formatJson = (
   jsonString: string,
 ): LLMResponse | { error: string } | null => {
   try {
-    // Attempt to find the single JSON object in the response
     const jsonMatch = jsonString.match(/(\{[\s\S]*\})/);
     if (!jsonMatch) {
-      console.error('No valid JSON object found in the response.');
       return { error: 'No valid JSON object found in the response.' };
     }
 
-    const cleanJsonString = jsonMatch[1].trim(); // Extract and strip whitespace
+    const cleanJsonString = jsonMatch[1].trim();
 
-    console.log(`Extracted JSON string: ${cleanJsonString}`);
-
-    // Parse the cleaned JSON
     const jsonData = JSON.parse(cleanJsonString);
 
-    // Check if it's an error response
     if ('error' in jsonData) {
       return jsonData;
     }
 
-    // Validate required metadata fields
     const requiredMetadata = [
       'title',
       'description',
@@ -174,18 +164,14 @@ const formatJson = (
     ];
     for (const field of requiredMetadata) {
       if (!(field in jsonData)) {
-        console.error(`Invalid JSON structure: Missing '${field}' field.`);
         return { error: `Invalid JSON structure: Missing '${field}' field.` };
       }
     }
 
-    // Validate 'questions' field
     if (!Array.isArray(jsonData.questions)) {
-      console.error("Invalid JSON format: 'questions' should be a list.");
       return { error: "Invalid JSON format: 'questions' should be a list." };
     }
 
-    // Add a unique 'id' to each question if not already present
     for (const item of jsonData.questions) {
       if (!item.id) {
         item.id = uuidv4();
@@ -194,12 +180,10 @@ const formatJson = (
 
     return jsonData as LLMResponse;
   } catch (e) {
-    console.error(`Error while parsing JSON: ${e}`);
     return null;
   }
 };
 
-// Function to generate LLM response with retries using Hugging Face Inference API
 const generateLLMResponse = async (
   prompt: string,
   retries: number = 3,
@@ -208,20 +192,14 @@ const generateLLMResponse = async (
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      console.log(
-        `Attempt ${attempt}: Sending prompt to Hugging Face Inference API.`,
-      );
-
       let fullResponse = '';
       for await (const chunk of inference.chatCompletionStream({
         model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 4096,
+        max_tokens: null,
       })) {
         fullResponse += chunk.choices[0]?.delta?.content || '';
       }
-
-      console.log(`Raw Hugging Face API response: ${fullResponse}`);
 
       const formattedData = formatJson(fullResponse);
       if (formattedData) {
@@ -230,7 +208,6 @@ const generateLLMResponse = async (
         throw new Error('Formatted data is null.');
       }
     } catch (error) {
-      console.error(`Error on attempt ${attempt}: ${(error as Error).message}`);
       if (attempt === retries) {
         return {
           error:
@@ -240,28 +217,21 @@ const generateLLMResponse = async (
     }
   }
 
-  console.error('All attempts to generate Hugging Face response failed.');
   return null;
 };
 
-// The main API handler
 export async function POST(req: NextRequest) {
   try {
     const data: GenerateQuizRequest = await req.json();
 
-    console.log(`Received request with payload: ${JSON.stringify(data)}`);
+    const input = data.input;
+    const inputType = data.inputType || 'text';
+    const numberOfQuestions = data.numberOfQuestions || 5;
+    const model = data.model || 'mistralai/Mixtral-8x7B-Instruct-v0.1';
+    const difficulty = data.difficulty || 'Easy';
+    const userId = data.userId;
 
-    // Validate input fields
-    const {
-      input,
-      numberOfQuestions = 5,
-      model = 'mistralai/Mixtral-8x7B-Instruct-v0.1',
-      difficulty = 'Easy',
-      userId,
-    } = data;
-
-    if (!input || typeof input !== 'string') {
-      console.error("Invalid or missing 'input' field.");
+    if (!input) {
       return NextResponse.json(
         {
           success: false,
@@ -278,7 +248,6 @@ export async function POST(req: NextRequest) {
     }
 
     if (typeof numberOfQuestions !== 'number' || numberOfQuestions <= 0) {
-      console.error("Invalid 'numberOfQuestions' field.");
       return NextResponse.json(
         {
           success: false,
@@ -294,11 +263,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Build the prompt
-    const prompt = buildPrompt(input, numberOfQuestions, difficulty);
-    console.log(`Built prompt: ${prompt}`);
+    if (inputType === 'file') {
+      const file = input;
+      
+    }
 
-    // Generate LLM response using Hugging Face Inference API
+    const prompt = buildPrompt(input, numberOfQuestions, difficulty);
+
     const llmResult = await generateLLMResponse(prompt);
 
     if (!llmResult) {
@@ -335,13 +306,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Construct the quiz data
     const quizData = {
       quizId: generateUUIDv4(),
       userId,
       input: {
         data: input,
-        type: 'text', // Assuming input type is always text, adjust if needed
+        type: 'text',
       },
       model,
       quiz: {
@@ -352,14 +322,9 @@ export async function POST(req: NextRequest) {
       updatedAt: new Date(),
     };
 
-    // Save to MongoDB
     const database = await db;
     const collection = database.collection('quizzes');
     await collection.insertOne(quizData);
-
-    console.log(
-      `Successfully generated and saved quiz: ${JSON.stringify(quizData)}`,
-    );
 
     return NextResponse.json(
       {
@@ -375,7 +340,6 @@ export async function POST(req: NextRequest) {
       { status: 200 },
     );
   } catch (error) {
-    console.error(`Unexpected error: ${(error as Error).message}`);
     return NextResponse.json(
       {
         success: false,

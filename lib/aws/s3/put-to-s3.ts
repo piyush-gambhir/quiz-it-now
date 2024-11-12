@@ -1,6 +1,6 @@
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 
-import { s3Client } from '@/lib/aws/s3/client';
+import { getS3Client } from '@/lib/aws/s3/client';
 
 export async function putToS3(
   bucket: string,
@@ -14,7 +14,7 @@ export async function putToS3(
       Body: body,
     });
 
-    await s3Client.send(command);
+    await getS3Client().send(command);
   } catch (error) {
     console.error('Error putting object to S3:', error);
     throw new Error('Failed to upload object to S3');

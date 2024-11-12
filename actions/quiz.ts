@@ -17,17 +17,17 @@ export async function generateQuiz({
 }) {
   try {
     const session = await getServerSession();
+    const formData = new FormData();
+    formData.append('userId', session?.user?.id || '');
+    formData.append('inputType', inputType);
+    formData.append('numberOfQuestions', numberOfQuestions.toString());
+    formData.append('model', model);
+    formData.append('file', input);
     const response = await fetch(
       `${env.NEXT_PUBLIC_APP_URL}/api/quiz/generate/ai`,
       {
         method: 'POST',
-        body: JSON.stringify({
-          userId: session?.user?.id,
-          input,
-          inputType,
-          numberOfQuestions,
-          model,
-        }),
+        body: formData,
       },
     );
 

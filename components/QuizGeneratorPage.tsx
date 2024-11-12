@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { generateQuiz } from '@/actions/quiz';
 
 import { putToS3 } from '@/lib/aws/s3/put-to-s3';
+import { generateUUIDv4 } from '@/lib/utils/generateUUID';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,20 +23,36 @@ import LoadingModal from '@/components/common/LoadingModal';
 
 export default function QuizGeneratorPage() {
   const [text, setText] = useState('');
-  const [file, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState({
+    name: '',
+    url: '',
+    type: '',
+  });
   const [link, setLink] = useState('');
   const [questions, setQuestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [inputType, setInputType] = useState('text');
   const [numberOfQuestions, setNumberOfQuestions] = useState(3);
+
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const router = useRouter();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const file = e.target.files[0];
+      const fileName = `uploads/${Date.now()}-${file.name}`;
+      await putToS3(
+        'quiz-it-now-s3',
+        fileName,
+        Buffer.from(await file.arrayBuffer()),
+      );
+      setFile({
+        name: file.name,
+        url: fileName,
+        type: file.type,
+      });
     }
   };
 
@@ -229,8 +246,8 @@ export default function QuizGeneratorPage() {
           <div className="mt-4 p-4 bg-white rounded-lg shadow-md">
             <h2 className="text-lg font-bold mb-2">Generated Questions:</h2>
             <ul className="list-disc pl-5">
-              {questions.map((question, index) => (
-                <li key={index}>{question}</li>
+              {questions.map((question) => (
+                <li key={generateUUIDv4()}>{question}</li>
               ))}
             </ul>
           </div>
