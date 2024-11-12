@@ -10,7 +10,7 @@ export async function getFromS3(bucket: string, key: string): Promise<string> {
       Key: key,
     });
 
-    const signedUrl = await getSignedUrl(s3Client, command, {
+    const signedUrl = await getSignedUrl(s3Client!, command, {
       expiresIn: 3600,
     });
     return signedUrl;

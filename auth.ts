@@ -27,7 +27,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         user = await createUser(
           token.email!,
           session.user?.name!,
-          session.user?.image,
+          session.user?.image!,
         );
       }
       session.user.id = user.userId;

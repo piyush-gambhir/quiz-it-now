@@ -14,3 +14,5 @@ export const getS3Client = (): S3Client => {
   }
   return s3Client;
 };
+
+export { s3Client };

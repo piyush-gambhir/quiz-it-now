@@ -1,20 +1,25 @@
-import { env } from '@/env';
 import { HfInference } from '@huggingface/inference';
 
-import multer from 'multer';
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 
+import logger from '@/lib/logger/winston';
 import { db } from '@/lib/mongo/client';
 import { generateUUIDv4 } from '@/lib/utils/generateUUID';
 
 interface GenerateQuizRequest {
-  input: any;
-  inputType?: 'text' | 'url' | 'file';
-  numberOfQuestions?: number;
+  input: string | FileInput;
+  inputType: 'text' | 'link' | 'file';
+  numberOfQuestions: number;
   model?: string;
-  difficulty?: 'Easy' | 'Medium' | 'Hard' | 'God Mode';
+  difficulty: 'Easy' | 'Medium' | 'Hard' | 'God Mode';
   userId: string;
+}
+
+interface FileInput {
+  name: string;
+  type: string;
+  url: string;
 }
 
 interface QuizResponse {
@@ -48,14 +53,13 @@ interface LLMResponse {
   tags: string[];
   questions: QuizQuestion[];
 }
-
 const buildPrompt = (
   text: string,
   numberOfQuestions: number,
   difficulty: string,
 ): string => {
   return `
-    You are an AI assistant specialized in creating educational content. Your task is to generate a single, structured JSON object for a quiz based on the provided input text.
+    You are an AI assistant specialized in creating educational content. Your task is to generate a single, well-structured JSON object for a quiz based on the provided input text.
 
     **Instructions:**
 
@@ -88,12 +92,9 @@ const buildPrompt = (
         - Do not exceed this number, even if the input text is long.
     - **Input Length Validation**:
         - If the input text is **under 500 words**, do not generate a quiz. Instead, return the following JSON:
-        \`\`\`json
         {"error": "Input text must be at least 500 words to generate a quiz."}
-        \`\`\`
     - **Question Structure**:
         - Each question should include:
-            - \`"id"\`: A unique identifier (use UUID v4).
             - \`"type"\`: One of \`"multiple-choice"\`, \`"true/false"\`, \`"fill-in-the-blank"\`.
             - \`"question"\`: The text of the question.
             - \`"options"\`: A list of options:
@@ -105,7 +106,6 @@ const buildPrompt = (
     - **Output Format**:
         - **Return only a single JSON object** that encapsulates all metadata and questions.
         - The JSON structure should be as follows:
-        \`\`\`json
         {
             "title": "Generated Title",
             "description": "Generated Description",
@@ -114,7 +114,6 @@ const buildPrompt = (
             "tags": ["Tag1", "Tag2"],
             "questions": [
                 {
-                    "id": "UUID v4",
                     "type": "multiple-choice",
                     "question": "Question 1?",
                     "options": ["Option A", "Option B", "Option C", "Option D"],
@@ -125,9 +124,9 @@ const buildPrompt = (
                 ...
             ]
         }
-        \`\`\`
         - Ensure the JSON is **valid** and properly formatted.
         - **Do not include any text outside of the JSON format.**
+        - **Do not include multiple JSON objects or any additional text. Ensure that all questions are contained within the "questions" array of the JSON object.**
 
     **Input Text:**
 
@@ -136,11 +135,12 @@ const buildPrompt = (
     **Output only valid JSON. Do not include multiple JSON objects or any additional text. Ensure that all questions are contained within the "questions" array of the JSON object.**
   `;
 };
-
 const formatJson = (
   jsonString: string,
 ): LLMResponse | { error: string } | null => {
   try {
+    jsonString = jsonString.replace(/```json|```/g, '');
+
     const jsonMatch = jsonString.match(/(\{[\s\S]*\})/);
     if (!jsonMatch) {
       return { error: 'No valid JSON object found in the response.' };
@@ -176,11 +176,36 @@ const formatJson = (
       if (!item.id) {
         item.id = uuidv4();
       }
+      if (
+        !item.type ||
+        !['multiple-choice', 'true/false', 'fill-in-the-blank'].includes(
+          item.type,
+        )
+      ) {
+        return {
+          error: `Invalid question type: '${item.type}' is not allowed.`,
+        };
+      }
+      if (
+        !item.question ||
+        !item.options ||
+        !item.answer ||
+        !item.explanation ||
+        !item.tags
+      ) {
+        return {
+          error: `Invalid question structure: Missing required fields in question.`,
+        };
+      }
     }
+
+    jsonData.questions.forEach((question: QuizQuestion) => {
+      question.id = generateUUIDv4();
+    });
 
     return jsonData as LLMResponse;
   } catch (e) {
-    return null;
+    return { error: 'Error while parsing JSON response.' };
   }
 };
 
@@ -188,91 +213,326 @@ const generateLLMResponse = async (
   prompt: string,
   retries: number = 3,
 ): Promise<LLMResponse | { error: string } | null> => {
-  const inference = new HfInference(env.HUGGINGFACE_API_KEY);
+  const inference = new HfInference(process.env.HUGGINGFACE_API_KEY);
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       let fullResponse = '';
-      for await (const chunk of inference.chatCompletionStream({
-        model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: null,
-      })) {
-        fullResponse += chunk.choices[0]?.delta?.content || '';
+
+      const inferenceResponse = inference.chatCompletionStream({
+        model: 'meta-llama/Llama-3.2-3B-Instruct',
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        max_tokens: 2048,
+      });
+
+      for await (const chunk of inferenceResponse) {
+        if (chunk.choices && chunk.choices.length > 0) {
+          const newContent = chunk.choices[0].delta.content;
+          fullResponse += newContent;
+        }
       }
 
+      logger.info(`LLM Response (Attempt ${attempt}): ${fullResponse}`);
+
       const formattedData = formatJson(fullResponse);
-      if (formattedData) {
+      if (formattedData && !('error' in formattedData)) {
+        return formattedData;
+      } else if (formattedData && 'error' in formattedData) {
+        logger.error(`LLM Error (Attempt ${attempt}): ${formattedData.error}`);
         return formattedData;
       } else {
-        throw new Error('Formatted data is null.');
+        throw new Error('Formatted data is null or contains errors.');
       }
-    } catch (error) {
+    } catch (error: any) {
+      logger.error(
+        `LLM Generation Error (Attempt ${attempt}): ${error.message}`,
+      );
       if (attempt === retries) {
         return {
           error:
             'Failed to generate a valid response from the Hugging Face Inference API after multiple attempts.',
         };
       }
+      await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
     }
   }
 
-  return null;
+  return {
+    error:
+      'Failed to generate a valid response from the Hugging Face Inference API after multiple attempts.',
+  };
 };
 
 export async function POST(req: NextRequest) {
   try {
     const data: GenerateQuizRequest = await req.json();
 
-    const input = data.input;
-    const inputType = data.inputType || 'text';
-    const numberOfQuestions = data.numberOfQuestions || 5;
-    const model = data.model || 'mistralai/Mixtral-8x7B-Instruct-v0.1';
-    const difficulty = data.difficulty || 'Easy';
-    const userId = data.userId;
+    const {
+      userId,
+      input,
+      inputType,
+      numberOfQuestions,
+      difficulty,
+      model = 'meta-llama/Llama-3.2-3B-Instruct',
+    } = data;
+    logger.info(`Received quiz generation request: ${JSON.stringify(data)}`);
 
-    if (!input) {
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      logger.warn("Invalid or missing 'userId' field.");
       return NextResponse.json(
         {
           success: false,
           statusCode: 400,
-          message: "Invalid or missing 'input' field.",
+          message: "Invalid or missing 'userId' field.",
           data: null,
           error: {
             code: 400,
-            message: "Invalid or missing 'input' field.",
+            message: "Invalid or missing 'userId' field.",
           },
         },
         { status: 400 },
       );
     }
 
-    if (typeof numberOfQuestions !== 'number' || numberOfQuestions <= 0) {
+    // Validate numberOfQuestions
+    if (
+      typeof numberOfQuestions !== 'number' ||
+      !Number.isInteger(numberOfQuestions) ||
+      numberOfQuestions <= 0
+    ) {
+      logger.warn("Invalid 'numberOfQuestions' field.");
       return NextResponse.json(
         {
           success: false,
           statusCode: 400,
-          message: "Invalid 'numberOfQuestions' field.",
+          message:
+            "Invalid 'numberOfQuestions' field. It must be a positive integer.",
           data: null,
           error: {
             code: 400,
-            message: "Invalid 'numberOfQuestions' field.",
+            message:
+              "Invalid 'numberOfQuestions' field. It must be a positive integer.",
           },
         },
         { status: 400 },
       );
     }
 
-    if (inputType === 'file') {
-      const file = input;
-      
+    // Validate difficulty
+    const validDifficulties = ['Easy', 'Medium', 'Hard', 'God Mode'];
+    if (!validDifficulties.includes(difficulty)) {
+      logger.warn("Invalid 'difficulty' field.");
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 400,
+          message: `Invalid 'difficulty' field. Must be one of ${validDifficulties.join(
+            ', ',
+          )}.`,
+          data: null,
+          error: {
+            code: 400,
+            message: `Invalid 'difficulty' field. Must be one of ${validDifficulties.join(
+              ', ',
+            )}.`,
+          },
+        },
+        { status: 400 },
+      );
     }
 
-    const prompt = buildPrompt(input, numberOfQuestions, difficulty);
+    let processedText = '';
+    if (inputType === 'text') {
+      if (typeof input !== 'string') {
+        logger.warn("Invalid 'input' field for 'text' inputType.");
+        return NextResponse.json(
+          {
+            success: false,
+            statusCode: 400,
+            message:
+              "Invalid 'input' field. Expected a string for 'text' inputType.",
+            data: null,
+            error: {
+              code: 400,
+              message:
+                "Invalid 'input' field. Expected a string for 'text' inputType.",
+            },
+          },
+          { status: 400 },
+        );
+      }
+      processedText = input;
+    } else if (inputType === 'file') {
+      if (typeof input !== 'object' || !('url' in input)) {
+        logger.warn("Invalid 'input' field for 'file' inputType.");
+        return NextResponse.json(
+          {
+            success: false,
+            statusCode: 400,
+            message:
+              "Invalid 'input' field. Expected an object with 'name', 'type', and 'url' for 'file' inputType.",
+            data: null,
+            error: {
+              code: 400,
+              message:
+                "Invalid 'input' field. Expected an object with 'name', 'type', and 'url' for 'file' inputType.",
+            },
+          },
+          { status: 400 },
+        );
+      }
+
+      const fileInput = input as FileInput;
+
+      if (
+        !fileInput.name ||
+        !fileInput.type ||
+        !fileInput.url ||
+        typeof fileInput.name !== 'string' ||
+        typeof fileInput.type !== 'string' ||
+        typeof fileInput.url !== 'string'
+      ) {
+        logger.warn("Invalid 'file' input data.");
+        return NextResponse.json(
+          {
+            success: false,
+            statusCode: 400,
+            message:
+              "Invalid 'file' input. 'name', 'type', and 'url' must be non-empty strings.",
+            data: null,
+            error: {
+              code: 400,
+              message:
+                "Invalid 'file' input. 'name', 'type', and 'url' must be non-empty strings.",
+            },
+          },
+          { status: 400 },
+        );
+      }
+
+      // Fetch the file content from the URL
+      try {
+        logger.info(`Fetching file content from URL: ${fileInput.url}`);
+        const fileResponse = await fetch(fileInput.url);
+        if (!fileResponse.ok) {
+          throw new Error('Failed to fetch the file from the provided URL.');
+        }
+        const fileContent = await fileResponse.text();
+        processedText = fileContent;
+      } catch (fileError: any) {
+        logger.error('Error processing file input:', fileError);
+        return NextResponse.json(
+          {
+            success: false,
+            statusCode: 400,
+            message: fileError.message || 'Failed to process the file input.',
+            data: null,
+            error: {
+              code: 400,
+              message: fileError.message || 'Failed to process the file input.',
+            },
+          },
+          { status: 400 },
+        );
+      }
+    } else if (inputType === 'link') {
+      if (typeof input !== 'string') {
+        logger.warn("Invalid 'input' field for 'link' inputType.");
+        return NextResponse.json(
+          {
+            success: false,
+            statusCode: 400,
+            message:
+              "Invalid 'input' field. Expected a string URL for 'link' inputType.",
+            data: null,
+            error: {
+              code: 400,
+              message:
+                "Invalid 'input' field. Expected a string URL for 'link' inputType.",
+            },
+          },
+          { status: 400 },
+        );
+      }
+
+      // Fetch the content from the link
+      try {
+        logger.info(`Fetching content from link: ${input}`);
+        const linkResponse = await fetch(input);
+        if (!linkResponse.ok) {
+          throw new Error('Failed to fetch content from the provided link.');
+        }
+        const linkContent = await linkResponse.text();
+        processedText = linkContent;
+      } catch (linkError: any) {
+        logger.error('Error processing link input:', linkError);
+        return NextResponse.json(
+          {
+            success: false,
+            statusCode: 400,
+            message: linkError.message || 'Failed to process the link input.',
+            data: null,
+            error: {
+              code: 400,
+              message: linkError.message || 'Failed to process the link input.',
+            },
+          },
+          { status: 400 },
+        );
+      }
+    } else {
+      logger.warn(`Unsupported 'inputType': ${inputType}`);
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 400,
+          message: `Unsupported 'inputType': ${inputType}`,
+          data: null,
+          error: {
+            code: 400,
+            message: `Unsupported 'inputType': ${inputType}`,
+          },
+        },
+        { status: 400 },
+      );
+    }
+
+    // Validate word count (500 words)
+    const wordCount = processedText.split(/\s+/).length;
+    logger.info(`Processed text word count: ${wordCount}`);
+    if (wordCount < 500) {
+      logger.warn(
+        'Input text does not meet the minimum word count requirement.',
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 400,
+          message: 'Input text must be at least 500 words to generate a quiz.',
+          data: null,
+          error: {
+            code: 400,
+            message:
+              'Input text must be at least 500 words to generate a quiz.',
+          },
+        },
+        { status: 400 },
+      );
+    }
+
+    const prompt = buildPrompt(processedText, numberOfQuestions, difficulty);
+    logger.info('Prompt for LLM generation:', prompt);
 
     const llmResult = await generateLLMResponse(prompt);
 
     if (!llmResult) {
+      logger.error('LLM failed to generate a response.');
       return NextResponse.json(
         {
           success: false,
@@ -291,6 +551,7 @@ export async function POST(req: NextRequest) {
     }
 
     if ('error' in llmResult) {
+      logger.error(`LLM Error: ${llmResult.error}`);
       return NextResponse.json(
         {
           success: false,
@@ -311,7 +572,7 @@ export async function POST(req: NextRequest) {
       userId,
       input: {
         data: input,
-        type: 'text',
+        type: inputType,
       },
       model,
       quiz: {
@@ -322,15 +583,34 @@ export async function POST(req: NextRequest) {
       updatedAt: new Date(),
     };
 
-    const database = await db;
-    const collection = database.collection('quizzes');
-    await collection.insertOne(quizData);
+    try {
+      const database = await db;
+      const collection = database.collection('quizzes');
+      await collection.insertOne(quizData);
+      logger.info(`Quiz saved to database with ID: ${quizData.quizId}`);
+    } catch (dbError: any) {
+      logger.error('Database insertion error:', dbError);
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 500,
+          message: 'Failed to save quiz to the database.',
+          data: null,
+          error: {
+            code: 500,
+            message: 'Failed to save quiz to the database.',
+          },
+        },
+        { status: 500 },
+      );
+    }
 
+    logger.info(`Quiz generated successfully with ID: ${quizData.quizId}`);
     return NextResponse.json(
       {
         success: true,
         statusCode: 200,
-        message: 'Quiz generated successfully',
+        message: 'Quiz generated successfully.',
         data: quizData,
         error: {
           code: null,
@@ -339,7 +619,8 @@ export async function POST(req: NextRequest) {
       },
       { status: 200 },
     );
-  } catch (error) {
+  } catch (error: any) {
+    logger.error('Unexpected server error:', error);
     return NextResponse.json(
       {
         success: false,

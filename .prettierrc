@@ -20,6 +20,7 @@
     "^@/actions/(.*)$",
     "^@/atoms/(.*)$",
     "^@/context/(.*)$",
+    "^@/helpers/(.*)$",
     "^@/lib/(.*)$",
     "^@/hooks/(.*)$",
     "^@/components/ui/(.*)$",

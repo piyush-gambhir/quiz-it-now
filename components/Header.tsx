@@ -108,7 +108,6 @@ const Header = () => {
 
   useEffect(() => {}, [session]);
 
-  console.log(session);
   return (
     <header className="sticky top-0 z-50 py-4 px-8 bg-white">
       <div>

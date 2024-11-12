@@ -26,7 +26,7 @@ const HeroSection = () => {
           engagement.
         </p>
         <div className="mt-6 flex flex-col gap-4 sm:flex-row lg:mt-10">
-          <Link href="/quiz/generate">
+          <Link href="/quiz/generate" prefetch={true}>
             <Button size={'lg'} className="w-full md:w-auto">
               Generate Quiz
             </Button>

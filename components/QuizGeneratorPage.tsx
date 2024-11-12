@@ -1,3 +1,4 @@
+// File: /components/QuizGeneratorPage.tsx
 'use client';
 
 import { CornerDownLeft, FileText, Link, Paperclip } from 'lucide-react';
@@ -12,6 +13,13 @@ import { generateUUIDv4 } from '@/lib/utils/generateUUID';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Tooltip,
@@ -20,6 +28,12 @@ import {
 } from '@/components/ui/tooltip';
 
 import LoadingModal from '@/components/common/LoadingModal';
+
+// File: /components/QuizGeneratorPage.tsx
+
+// File: /components/QuizGeneratorPage.tsx
+
+// File: /components/QuizGeneratorPage.tsx
 
 export default function QuizGeneratorPage() {
   const [text, setText] = useState('');
@@ -32,8 +46,11 @@ export default function QuizGeneratorPage() {
   const [questions, setQuestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [inputType, setInputType] = useState('text');
-  const [numberOfQuestions, setNumberOfQuestions] = useState(3);
+  const [inputType, setInputType] = useState<'text' | 'link' | 'file'>('text');
+  const [numberOfQuestions, setNumberOfQuestions] = useState(5);
+  const [difficulty, setDifficulty] = useState<
+    'Easy' | 'Medium' | 'Hard' | 'God Mode'
+  >('Easy');
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -43,60 +60,69 @@ export default function QuizGeneratorPage() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const fileName = `uploads/${Date.now()}-${file.name}`;
-      await putToS3(
-        'quiz-it-now-s3',
-        fileName,
-        Buffer.from(await file.arrayBuffer()),
-      );
-      setFile({
-        name: file.name,
-        url: fileName,
-        type: file.type,
-      });
+      try {
+        await putToS3(
+          'quiz-it-now-s3',
+          fileName,
+          Buffer.from(await file.arrayBuffer()),
+        );
+        setFile({
+          name: file.name,
+          url: fileName,
+          type: file.type,
+        });
+      } catch (uploadError: any) {
+        console.error('File upload error:', uploadError);
+        setError('Failed to upload the file. Please try again.');
+      }
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setQuestions([]);
     setError(null);
 
-    let input = '';
-    switch (inputType) {
-      case 'text':
-        input = text;
-        break;
-      case 'file':
-        if (file) {
-          try {
-            const fileBuffer = await file.arrayBuffer();
-            const fileName = `uploads/${Date.now()}-${file.name}`;
-            await putToS3('quiz-master-s3', fileName, Buffer.from(fileBuffer));
-            input = fileName;
-          } catch (error) {
-            console.error('Error uploading file to S3:', error);
-            setError('Failed to upload file. Please try again.');
-            setLoading(false);
-            return;
-          }
-        }
-        break;
-      case 'link':
-        input = link;
-        break;
-    }
-
     try {
-      const generatedQuestions = await generateQuiz({
-        input,
+      let inputData;
+      if (inputType === 'text') {
+        inputData = text;
+      } else if (inputType === 'file') {
+        if (!file.url) {
+          setError('Please upload a file before generating the quiz.');
+          setLoading(false);
+          return;
+        }
+        inputData = file;
+      } else if (inputType === 'link') {
+        inputData = link;
+      }
+
+      const generatedQuiz = await generateQuiz({
+        input: inputData,
         inputType,
         numberOfQuestions,
+        difficulty,
       });
 
-      router.push(`/quiz/${generatedQuestions?.quizId}`);
-    } catch (error) {
-      setError('Failed to generate questions. Please try again.');
+      if (!generatedQuiz?.success) {
+        // If the response indicates failure, set the error message
+        setError(
+          generatedQuiz?.message ||
+            'Failed to generate quiz. Please try again.',
+        );
+        return;
+      }
+
+      // Navigate to the quiz details page on success
+      router.push(`/quiz/${generatedQuiz.data}`);
+    } catch (error: any) {
+      // Catch any unexpected errors and display a message
+      console.error('Unexpected error generating questions:', error);
+      setError(
+        error.message ||
+          'An unexpected error occurred. Please try again later.',
+      );
     } finally {
       setLoading(false);
     }
@@ -127,7 +153,7 @@ export default function QuizGeneratorPage() {
             className="cursor-pointer border-0 p-3 w-full h-[200px] flex items-center justify-center bg-gray-200"
             onClick={() => document.getElementById('file-input')?.click()}
           >
-            {file ? (
+            {file.name ? (
               <span>{file.name}</span>
             ) : (
               <span className="text-center">Click to upload a file</span>
@@ -161,9 +187,9 @@ export default function QuizGeneratorPage() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <LoadingModal isOpen={loading} message="Generating Questions" />
-      <main className="w-full max-w-4xl px-4">
+      <main className="w-full max-w-5xl px-4">
         <form
           className="relative overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
           onSubmit={handleSubmit}
@@ -181,9 +207,9 @@ export default function QuizGeneratorPage() {
                   variant="ghost"
                   size="icon"
                   onClick={() => setInputType('text')}
+                  aria-label="Switch to Text Input"
                 >
                   <FileText className="size-4" />
-                  <span className="sr-only">Switch to Text Input</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">Switch to Text Input</TooltipContent>
@@ -196,9 +222,9 @@ export default function QuizGeneratorPage() {
                   variant="ghost"
                   size="icon"
                   onClick={() => setInputType('file')}
+                  aria-label="Attach File"
                 >
                   <Paperclip className="size-4" />
-                  <span className="sr-only">Attach File</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">Attach File</TooltipContent>
@@ -211,9 +237,9 @@ export default function QuizGeneratorPage() {
                   variant="ghost"
                   size="icon"
                   onClick={() => setInputType('link')}
+                  aria-label="Switch to Link Input"
                 >
                   <Link className="size-4" />
-                  <span className="sr-only">Switch to Link Input</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">Switch to Link Input</TooltipContent>
@@ -233,6 +259,29 @@ export default function QuizGeneratorPage() {
                 className="w-16"
               />
             </div>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="difficulty" className="text-sm">
+                Difficulty:
+              </Label>
+              <Select
+                value={difficulty}
+                onValueChange={(value) =>
+                  setDifficulty(
+                    value as 'Easy' | 'Medium' | 'Hard' | 'God Mode',
+                  )
+                }
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Difficulty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Easy">Easy</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Hard">Hard</SelectItem>
+                  <SelectItem value="God Mode">God Mode</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             <Button type="submit" size="sm" className="ml-auto gap-1.5">
               {loading ? 'Generating' : 'Generate'}
@@ -241,7 +290,12 @@ export default function QuizGeneratorPage() {
           </div>
         </form>
 
-        {error && <div className="text-red-500 mt-4">{error}</div>}
+        {error && (
+          <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-lg">
+            <strong>Error:</strong> {error}
+          </div>
+        )}
+
         {questions.length > 0 && (
           <div className="mt-4 p-4 bg-white rounded-lg shadow-md">
             <h2 className="text-lg font-bold mb-2">Generated Questions:</h2>
