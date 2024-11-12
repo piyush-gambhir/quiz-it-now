@@ -1,11 +1,18 @@
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
+import Github from 'next-auth/providers/github';
+
+import { createUser, getUser } from '@/actions/user';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
+    Github({
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
     }),
   ],
   pages: {
@@ -15,7 +22,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.AUTH_SECRET,
   callbacks: {
     async session({ session, token }) {
-      session.user.id = '27943dd2-5cce-4ddd-9ef9-f75b98115d2f';
+      let user = await getUser(token.email!);
+      if (!user) {
+        user = await createUser(
+          token.email!,
+          session.user?.name!,
+          session.user?.image,
+        );
+      }
+      session.user.id = user.userId;
+
       return session;
     },
   },

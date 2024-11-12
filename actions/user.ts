@@ -1,7 +1,5 @@
 'use server';
 
-import { env } from '@/env';
-
 // import { ObjectId } from 'mongodb';
 
 // import { db } from '@/lib/mongo/client';
@@ -73,7 +71,7 @@ export async function getUser(email?: string, userId?: string) {
     throw new Error('Either email or userId must be provided');
   }
 
-  const url = new URL(`${env.NEXT_PUBLIC_APP_URL}/api/users`);
+  const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL!}/api/users`);
   if (email) {
     url.searchParams.append('email', email);
   }
@@ -85,7 +83,8 @@ export async function getUser(email?: string, userId?: string) {
     method: 'GET',
   });
 
-  const user = await response.json();
+  const user = await response.json().then((data) => data?.data?.user);
+
   return user;
 }
 
@@ -99,11 +98,14 @@ export async function createUser(
     return user;
   }
 
-  const response = await fetch(`${env.NEXT_PUBLIC_APP_URL}/api/users`, {
-    method: 'POST',
-    body: JSON.stringify({ email, name, avatar }),
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL!}/api/users`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ email, name, avatar }),
+    },
+  );
 
-  const newUser = await response.json();
+  const newUser = await response.json().then((data) => data?.data?.user);
   return newUser;
 }

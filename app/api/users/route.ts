@@ -7,25 +7,25 @@ import { generateUUIDv4 } from '@/lib/utils/generateUUID';
 
 export async function GET(request: Request) {
   try {
-    const session = await auth();
-    if (!session) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          statusCode: 401,
-          message: 'Unauthorized',
-          data: null,
-          error: {
-            code: 401,
-            message: 'Authentication required',
-          },
-        }),
-        {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' },
-        },
-      );
-    }
+    // const session = await auth();
+    // if (!session) {
+    //   return new Response(
+    //     JSON.stringify({
+    //       success: false,
+    //       statusCode: 401,
+    //       message: 'Unauthorized',
+    //       data: null,
+    //       error: {
+    //         code: 401,
+    //         message: 'Authentication required',
+    //       },
+    //     }),
+    //     {
+    //       status: 401,
+    //       headers: { 'Content-Type': 'application/json' },
+    //     },
+    //   );
+    // }
 
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email');

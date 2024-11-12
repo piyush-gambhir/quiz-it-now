@@ -1,7 +1,5 @@
 'use server';
 
-import { env } from '@/env';
-
 import { getServerSession } from '@/lib/auth/get-session';
 
 export async function generateQuiz({
@@ -24,7 +22,7 @@ export async function generateQuiz({
     formData.append('model', model);
     formData.append('file', input);
     const response = await fetch(
-      `${env.NEXT_PUBLIC_APP_URL}/api/quiz/generate/ai`,
+      `${process.env.NEXT_PUBLIC_APP_URL!}/api/quiz/generate/ai`,
       {
         method: 'POST',
         body: formData,
@@ -47,7 +45,7 @@ export async function getQuizzes({
 }) {
   const session = await getServerSession();
   const response = await fetch(
-    `${env.NEXT_PUBLIC_APP_URL}/api/quiz?userId=${session?.user?.id}&page=${page}&limit=${limit}`,
+    `${process.env.NEXT_PUBLIC_APP_URL!}/api/quiz?userId=${session?.user?.id}&page=${page}&limit=${limit}`,
   );
   return response.json();
 }
@@ -55,7 +53,7 @@ export async function getQuizzes({
 export async function getQuizById({ quizId }: { quizId: string }) {
   const session = await getServerSession();
   const response = await fetch(
-    `${env.NEXT_PUBLIC_APP_URL}/api/quiz/${quizId}?userId=${session?.user?.id}`,
+    `${process.env.NEXT_PUBLIC_APP_URL!}/api/quiz/${quizId}?userId=${session?.user?.id}`,
   );
   return response.json().then((data) => data.data);
 }
