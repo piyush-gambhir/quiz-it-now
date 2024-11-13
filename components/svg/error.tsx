@@ -7,7 +7,7 @@ export default function error() {
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 1024 768"
-      className={cn('mx-auto h-56 w-auto text-black sm:h-64')}
+      className={cn('mx-auto h-56 w-auto text-black dark:text-white sm:h-64')}
     >
       <g fill="none" fillRule="evenodd">
         <g fill="#FF5678">

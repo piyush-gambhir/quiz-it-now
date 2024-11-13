@@ -1,4 +1,3 @@
-// File: /components/QuizGeneratorPage.tsx
 'use client';
 
 import { CornerDownLeft, FileText, Link, Paperclip } from 'lucide-react';
@@ -7,8 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { generateQuiz } from '@/actions/quiz';
 
-import { putToS3 } from '@/lib/aws/s3/put-to-s3';
-import { generateUUIDv4 } from '@/lib/utils/generateUUID';
+import { useAuthSession } from '@/hooks/auth/useSession';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,12 +27,6 @@ import {
 
 import LoadingModal from '@/components/common/LoadingModal';
 
-// File: /components/QuizGeneratorPage.tsx
-
-// File: /components/QuizGeneratorPage.tsx
-
-// File: /components/QuizGeneratorPage.tsx
-
 export default function QuizGeneratorPage() {
   const [text, setText] = useState('');
   const [file, setFile] = useState({
@@ -43,8 +35,8 @@ export default function QuizGeneratorPage() {
     type: '',
   });
   const [link, setLink] = useState('');
-  const [questions, setQuestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [inputType, setInputType] = useState<'text' | 'link' | 'file'>('text');
   const [numberOfQuestions, setNumberOfQuestions] = useState(5);
@@ -53,27 +45,67 @@ export default function QuizGeneratorPage() {
   >('Easy');
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-
   const router = useRouter();
 
+  const session = useAuthSession();
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null);
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const fileName = `uploads/${Date.now()}-${file.name}`;
+      const selectedFile = e.target.files[0];
+      const fileName = `uploads/${session?.data?.user?.id}/${Date.now()}-${selectedFile.name}`;
+      setUploading(true);
       try {
-        await putToS3(
-          'quiz-it-now-s3',
-          fileName,
-          Buffer.from(await file.arrayBuffer()),
-        );
+        // Get the presigned post data, including contentType
+        const presignedResponse = await fetch('/api/s3', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json', // Specify the content type of the request body
+          },
+          body: JSON.stringify({
+            key: fileName,
+            contentType: selectedFile.type, // Include the file's Content-Type
+          }),
+        });
+
+        if (!presignedResponse.ok) {
+          const errorData = await presignedResponse.json();
+          throw new Error(errorData.error || 'Failed to get upload URL');
+        }
+
+        const presignedData = await presignedResponse.json();
+
+        // Create FormData and append fields from presigned post
+        const formData = new FormData();
+        Object.entries(presignedData.fields).forEach(([key, value]) => {
+          formData.append(key, value as string);
+        });
+        formData.append('file', selectedFile);
+
+        // Upload to S3 using presigned post
+        const uploadResponse = await fetch(presignedData.url, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          const errorText = await uploadResponse.text();
+          throw new Error(`Failed to upload file: ${errorText}`);
+        }
+
+        // Set file info after successful upload
+        // Correctly construct the S3 URL
+        const fileUrl = `${presignedData.url}/${encodeURIComponent(fileName)}`;
         setFile({
-          name: file.name,
-          url: fileName,
-          type: file.type,
+          name: selectedFile.name,
+          url: fileUrl,
+          type: selectedFile.type,
         });
       } catch (uploadError: any) {
         console.error('File upload error:', uploadError);
         setError('Failed to upload the file. Please try again.');
+      } finally {
+        setUploading(false);
       }
     }
   };
@@ -82,7 +114,6 @@ export default function QuizGeneratorPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
     try {
       let inputData;
       if (inputType === 'text') {
@@ -97,27 +128,21 @@ export default function QuizGeneratorPage() {
       } else if (inputType === 'link') {
         inputData = link;
       }
-
       const generatedQuiz = await generateQuiz({
         input: inputData,
         inputType,
         numberOfQuestions,
         difficulty,
       });
-
       if (!generatedQuiz?.success) {
-        // If the response indicates failure, set the error message
         setError(
           generatedQuiz?.message ||
             'Failed to generate quiz. Please try again.',
         );
         return;
       }
-
-      // Navigate to the quiz details page on success
       router.push(`/quiz/${generatedQuiz.data}`);
     } catch (error: any) {
-      // Catch any unexpected errors and display a message
       console.error('Unexpected error generating questions:', error);
       setError(
         error.message ||
@@ -135,6 +160,16 @@ export default function QuizGeneratorPage() {
     }
   }, [text]);
 
+  const handleNumberOfQuestionsChange = (value: number) => {
+    if (value < 1) {
+      setNumberOfQuestions(1);
+    } else if (value > 20) {
+      setNumberOfQuestions(20);
+    } else {
+      setNumberOfQuestions(value);
+    }
+  };
+
   const renderInput = () => {
     switch (inputType) {
       case 'link':
@@ -150,11 +185,14 @@ export default function QuizGeneratorPage() {
       case 'file':
         return (
           <div
-            className="cursor-pointer border-0 p-3 w-full h-[200px] flex items-center justify-center bg-gray-200"
+            className="cursor-pointer border-0 p-3 w-full h-[200px] flex flex-col items-center justify-center"
             onClick={() => document.getElementById('file-input')?.click()}
           >
             {file.name ? (
-              <span>{file.name}</span>
+              <>
+                <Paperclip className="size-4 mb-2" />
+                <span>{file.name}</span>
+              </>
             ) : (
               <span className="text-center">Click to upload a file</span>
             )}
@@ -187,11 +225,12 @@ export default function QuizGeneratorPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex items-center justify-center min-h-screen">
       <LoadingModal isOpen={loading} message="Generating Questions" />
+      <LoadingModal isOpen={uploading} message="Uploading File" />
       <main className="w-full max-w-5xl px-4">
         <form
-          className="relative overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
+          className="relative overflow-hidden rounded-lg border focus-within:ring-1 focus-within:ring-ring"
           onSubmit={handleSubmit}
         >
           <Label htmlFor="message" className="sr-only">
@@ -253,7 +292,9 @@ export default function QuizGeneratorPage() {
                 type="number"
                 id="num-questions"
                 value={numberOfQuestions}
-                onChange={(e) => setNumberOfQuestions(Number(e.target.value))}
+                onChange={(e) =>
+                  handleNumberOfQuestionsChange(Number(e.target.value))
+                }
                 min="1"
                 max="20"
                 className="w-16"
@@ -293,17 +334,6 @@ export default function QuizGeneratorPage() {
         {error && (
           <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-lg">
             <strong>Error:</strong> {error}
-          </div>
-        )}
-
-        {questions.length > 0 && (
-          <div className="mt-4 p-4 bg-white rounded-lg shadow-md">
-            <h2 className="text-lg font-bold mb-2">Generated Questions:</h2>
-            <ul className="list-disc pl-5">
-              {questions.map((question) => (
-                <li key={generateUUIDv4()}>{question}</li>
-              ))}
-            </ul>
           </div>
         )}
       </main>

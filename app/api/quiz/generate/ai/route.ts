@@ -211,6 +211,7 @@ const formatJson = (
 
 const generateLLMResponse = async (
   prompt: string,
+  model: string,
   retries: number = 3,
 ): Promise<LLMResponse | { error: string } | null> => {
   const inference = new HfInference(process.env.HUGGINGFACE_API_KEY);
@@ -220,14 +221,14 @@ const generateLLMResponse = async (
       let fullResponse = '';
 
       const inferenceResponse = inference.chatCompletionStream({
-        model: 'meta-llama/Llama-3.2-3B-Instruct',
+        model: model,
         messages: [
           {
             role: 'user',
             content: prompt,
           },
         ],
-        max_tokens: 2048,
+        max_tokens: 1024,
       });
 
       for await (const chunk of inferenceResponse) {
@@ -278,7 +279,7 @@ export async function POST(req: NextRequest) {
       inputType,
       numberOfQuestions,
       difficulty,
-      model = 'meta-llama/Llama-3.2-3B-Instruct',
+      model = 'meta-llama/Llama-3.2-3B',
     } = data;
     logger.info(`Received quiz generation request: ${JSON.stringify(data)}`);
 
@@ -506,7 +507,7 @@ export async function POST(req: NextRequest) {
     // Validate word count (500 words)
     const wordCount = processedText.split(/\s+/).length;
     logger.info(`Processed text word count: ${wordCount}`);
-    if (wordCount < 500) {
+    if (wordCount < 250) {
       logger.warn(
         'Input text does not meet the minimum word count requirement.',
       );
@@ -514,12 +515,12 @@ export async function POST(req: NextRequest) {
         {
           success: false,
           statusCode: 400,
-          message: 'Input text must be at least 500 words to generate a quiz.',
+          message: 'Input text must be at least 250 words to generate a quiz.',
           data: null,
           error: {
             code: 400,
             message:
-              'Input text must be at least 500 words to generate a quiz.',
+              'Input text must be at least 250 words to generate a quiz.',
           },
         },
         { status: 400 },
@@ -529,7 +530,7 @@ export async function POST(req: NextRequest) {
     const prompt = buildPrompt(processedText, numberOfQuestions, difficulty);
     logger.info('Prompt for LLM generation:', prompt);
 
-    const llmResult = await generateLLMResponse(prompt);
+    const llmResult = await generateLLMResponse(prompt, model);
 
     if (!llmResult) {
       logger.error('LLM failed to generate a response.');

@@ -1,24 +1,13 @@
-// File: /actions/quiz.ts
 'use server';
 
 import { getServerSession } from '@/lib/auth/get-session';
-
-// File: /actions/quiz.ts
-
-// File: /actions/quiz.ts
-
-// File: /actions/quiz.ts
-
-// File: /actions/quiz.ts
-
-// File: /actions/quiz.ts
 
 export async function generateQuiz({
   input,
   inputType,
   numberOfQuestions = 5,
   difficulty = 'Easy',
-  model = 'mistralai/Mixtral-8x7B-Instruct-v0.1',
+  model = 'meta-llama/Llama-3.2-3B-Instruct',
 }: {
   input: any;
   inputType: 'text' | 'link' | 'file';
@@ -48,7 +37,6 @@ export async function generateQuiz({
     );
 
     const rawResponse = await response.text();
-    console.log('Raw server response:', rawResponse);
     let data;
     try {
       data = JSON.parse(rawResponse);

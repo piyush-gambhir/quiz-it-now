@@ -109,7 +109,7 @@ const Header = () => {
   useEffect(() => {}, [session]);
 
   return (
-    <header className="sticky top-0 z-50 py-4 px-8 bg-white">
+    <header className="sticky top-0 z-50 py-4 px-8 bg-background">
       <div>
         <nav className="hidden justify-between lg:flex">
           <div className="flex items-center gap-6">
