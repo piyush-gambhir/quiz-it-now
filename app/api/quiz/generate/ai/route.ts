@@ -53,7 +53,7 @@ interface LLMResponse {
   tags: string[];
   questions: QuizQuestion[];
 }
-const buildPrompt = (
+const buildPromptText = (
   text: string,
   numberOfQuestions: number,
   difficulty: string,
@@ -135,13 +135,108 @@ const buildPrompt = (
     **Output only valid JSON. Do not include multiple JSON objects or any additional text. Ensure that all questions are contained within the "questions" array of the JSON object.**
   `;
 };
+
+const buildPromptHTML = (
+  html: string,
+  numberOfQuestions: number,
+  difficulty: string,
+): string => {
+  return `
+    You are an AI assistant specialized in creating educational content. Your task is to generate a single, well-structured JSON object for a quiz based on the provided input HTML.
+
+    **Instructions:**
+
+    - **HTML Processing**:
+        - Analyze the provided HTML content.
+        - Extract the main textual content, removing all HTML tags, scripts, styles, and any irrelevant sections such as advertisements, navigation menus, or footers.
+        - Ensure that the extracted text is coherent and preserves the key themes and information from the original HTML.
+
+    - **Quiz Generation**:
+        - Based on the extracted text, generate a quiz with **exactly ${numberOfQuestions}** questions.
+        - The questions should focus on the **key themes, details, and complexities** of the extracted content.
+        - **Question Types**: Include a mix of the following question types:
+            - **Multiple-choice (MCQ)**: One correct answer and three plausible distractors (total of four options).
+            - **True/False**: Statements that are either true or false, with options "True" and "False".
+            - **Fill-in-the-Blank**: Sentences with a missing word or phrase, provided with four options to choose from.
+
+    - **Difficulty Level**:
+        - The quiz should match the selected difficulty level: **${difficulty}**.
+            - **Easy**: Basic facts and straightforward concepts.
+            - **Medium**: Detailed understanding and slight inference.
+            - **Hard**: Deep understanding and critical thinking.
+            - **God Mode**: Complex analysis and synthesis of ideas.
+
+    - **Metadata**:
+        - Include the following at the top level of the JSON:
+            - \`"title"\`: A concise, generated title based on the extracted content.
+            - \`"description"\`: A brief description generated from the extracted content.
+            - \`"difficulty"\`: The selected difficulty level ("${difficulty}").
+            - \`"topic"\`: The main topic or subject area of the extracted content.
+            - \`"tags"\`: A list of relevant tags related to the extracted content.
+            - \`"questions"\`: An array containing the generated questions.
+
+    **Rules:**
+
+    - **Number of Questions**:
+        - Use the **number of questions specified by the user**: **${numberOfQuestions}**.
+        - Do not exceed this number, even if the extracted text is extensive.
+
+    - **Input Length Validation**:
+        - If the extracted text is **under 500 words**, do not generate a quiz. Instead, return the following JSON:
+        {"error": "Extracted text must be at least 500 words to generate a quiz."}
+
+    - **Question Structure**:
+        - Each question should include:
+            - \`"type"\`: One of \`"multiple-choice"\`, \`"true/false"\`, \`"fill-in-the-blank"\`.
+            - \`"question"\`: The text of the question.
+            - \`"options"\`: A list of options:
+                - **For MCQ and Fill-in-the-Blank**: Four options to choose from.
+                - **For True/False**: ["True", "False"].
+            - \`"answer"\`: The correct answer text (must match one of the options).
+            - \`"explanation"\`: A brief explanation for the answer.
+            - \`"tags"\`: Relevant tags for the question.
+
+    - **Output Format**:
+        - **Return only a single JSON object** that encapsulates all metadata and questions.
+        - The JSON structure should be as follows:
+        {
+            "title": "Generated Title",
+            "description": "Generated Description",
+            "difficulty": "Medium",
+            "topic": "Main Topic",
+            "tags": ["Tag1", "Tag2"],
+            "questions": [
+                {
+                    "type": "multiple-choice",
+                    "question": "Question 1?",
+                    "options": ["Option A", "Option B", "Option C", "Option D"],
+                    "answer": "Option A",
+                    "explanation": "Explanation for Option A.",
+                    "tags": ["Tag1"]
+                },
+                ...
+            ]
+        }
+        - Ensure the JSON is **valid** and properly formatted.
+        - **Do not include any text outside of the JSON format.**
+        - **Do not include multiple JSON objects or any additional text. Ensure that all questions are contained within the "questions" array of the JSON object.**
+
+    **Extracted Text:**
+
+    ${html}
+
+    **Output only valid JSON. Do not include multiple JSON objects or any additional text. Ensure that all questions are contained within the "questions" array of the JSON object.**
+  `;
+};
+
 const formatJson = (
   jsonString: string,
 ): LLMResponse | { error: string } | null => {
   try {
     jsonString = jsonString.replace(/```json|```/g, '');
 
-    const jsonMatch = jsonString.match(/(\{[\s\S]*\})/);
+    const jsonRegex = /(\{[\s\S]*\})/;
+    const jsonMatch = jsonRegex.exec(jsonString);
     if (!jsonMatch) {
       return { error: 'No valid JSON object found in the response.' };
     }
@@ -211,7 +306,6 @@ const formatJson = (
 
 const generateLLMResponse = async (
   prompt: string,
-  model: string,
   retries: number = 3,
 ): Promise<LLMResponse | { error: string } | null> => {
   const inference = new HfInference(process.env.HUGGINGFACE_API_KEY);
@@ -221,14 +315,14 @@ const generateLLMResponse = async (
       let fullResponse = '';
 
       const inferenceResponse = inference.chatCompletionStream({
-        model: model,
+        model: 'meta-llama/Llama-3.2-3B-Instruct',
         messages: [
           {
             role: 'user',
             content: prompt,
           },
         ],
-        max_tokens: 1024,
+        max_tokens: 2048,
       });
 
       for await (const chunk of inferenceResponse) {
@@ -279,7 +373,7 @@ export async function POST(req: NextRequest) {
       inputType,
       numberOfQuestions,
       difficulty,
-      model = 'meta-llama/Llama-3.2-3B',
+      model = 'meta-llama/Llama-3.2-3B-Instruct',
     } = data;
     logger.info(`Received quiz generation request: ${JSON.stringify(data)}`);
 
@@ -462,7 +556,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Fetch the content from the link
+ 
       try {
         logger.info(`Fetching content from link: ${input}`);
         const linkResponse = await fetch(input);
@@ -507,7 +601,7 @@ export async function POST(req: NextRequest) {
     // Validate word count (500 words)
     const wordCount = processedText.split(/\s+/).length;
     logger.info(`Processed text word count: ${wordCount}`);
-    if (wordCount < 250) {
+    if (wordCount < 500) {
       logger.warn(
         'Input text does not meet the minimum word count requirement.',
       );
@@ -515,22 +609,22 @@ export async function POST(req: NextRequest) {
         {
           success: false,
           statusCode: 400,
-          message: 'Input text must be at least 250 words to generate a quiz.',
+          message: 'Input text must be at least 500 words to generate a quiz.',
           data: null,
           error: {
             code: 400,
             message:
-              'Input text must be at least 250 words to generate a quiz.',
+              'Input text must be at least 500 words to generate a quiz.',
           },
         },
         { status: 400 },
       );
     }
 
-    const prompt = buildPrompt(processedText, numberOfQuestions, difficulty);
+    const prompt = buildPromptText(processedText, numberOfQuestions, difficulty);
     logger.info('Prompt for LLM generation:', prompt);
 
-    const llmResult = await generateLLMResponse(prompt, model);
+    const llmResult = await generateLLMResponse(prompt);
 
     if (!llmResult) {
       logger.error('LLM failed to generate a response.');
