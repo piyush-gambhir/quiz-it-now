@@ -1,9 +1,0 @@
-services:
-  quiz-master-web:
-    build:
-      context: .
-      dockerfile: Dockerfile.production
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
