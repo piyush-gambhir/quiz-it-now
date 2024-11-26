@@ -1,6 +1,7 @@
 'use client';
 
 import { Eye, Play, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { useQueryParams } from '@/hooks/useQueryParams';
@@ -28,14 +29,18 @@ import {
 } from '@/components/ui/table';
 
 interface Quiz {
-  id: string;
-  title: string;
-  category: string;
+  quizId: string;
+  userId: string;
+  input: string;
+  model: string;
+  quiz: any;
   createdAt: string;
-  questionsCount: number;
+  updatedAt: string;
 }
 
-export default function QuizzesPage({ quizzes }: { quizzes: Quiz[] }) {
+export default function QuizzesPage({
+  quizzes,
+}: Readonly<{ quizzes: Quiz[] }>) {
   const [queryParams, setQueryParams] = useQueryParams();
   const [currentPage, setCurrentPage] = useState(
     parseInt(queryParams.page || '1'),
@@ -48,7 +53,7 @@ export default function QuizzesPage({ quizzes }: { quizzes: Quiz[] }) {
   }, [currentPage, searchTerm, setQueryParams]);
 
   const filteredQuizzes = quizzes.filter((quiz) =>
-    quiz.title.toLowerCase().includes(searchTerm.toLowerCase()),
+    quiz.quiz.title.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const totalPages = Math.ceil(filteredQuizzes.length / itemsPerPage);
@@ -63,16 +68,6 @@ export default function QuizzesPage({ quizzes }: { quizzes: Quiz[] }) {
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
     setCurrentPage(1);
-  };
-
-  const handleView = (id: string) => {
-    console.log(`Viewing quiz ${id}`);
-    // Implement view logic here
-  };
-
-  const handleTake = (id: string) => {
-    console.log(`Taking quiz ${id}`);
-    // Implement take quiz logic here
   };
 
   const handleDelete = (id: string) => {
@@ -94,13 +89,9 @@ export default function QuizzesPage({ quizzes }: { quizzes: Quiz[] }) {
             </p>
           </CardContent>
         </Card>
-        {/* Add more summary cards here if needed */}
       </div>
 
       <Card className="shadow-none border-none">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Quiz Management</CardTitle>
-        </CardHeader>
         <CardContent>
           <div className="mb-4 flex justify-between items-center">
             <Input
@@ -110,49 +101,55 @@ export default function QuizzesPage({ quizzes }: { quizzes: Quiz[] }) {
               onChange={handleSearch}
               className="max-w-sm"
             />
-            <Button>Create New Quiz</Button>
+            <Link href="/quiz/generate" prefetch={true}>
+              <Button>Create New Quiz</Button>
+            </Link>
           </div>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[300px]">Title</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Created At</TableHead>
-                  <TableHead>Questions</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                <TableRow className="grid grid-cols-8">
+                  <TableHead className="col-span-3">Title</TableHead>
+                  <TableHead className="col-span-2">Category</TableHead>
+                  <TableHead className="col-span-1">Created At</TableHead>
+                  <TableHead className="col-span-1">Questions</TableHead>
+                  <TableHead className="col-span-1">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {currentQuizzes.map((quiz) => (
-                  <TableRow key={quiz.id}>
-                    <TableCell className="font-medium">{quiz.title}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{quiz.category}</Badge>
+                  <TableRow key={quiz.quizId} className="grid grid-cols-8">
+                    <TableCell className="font-medium col-span-3">
+                      {quiz.quiz.title}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="flex flex-wrap gap-2 col-span-2">
+                      {quiz.quiz.tags.map((tag: string) => (
+                        <Badge className="h-min" variant="secondary" key={tag}>
+                          {tag}
+                        </Badge>
+                      ))}
+                    </TableCell>
+                    <TableCell className="col-span-1">
                       {new Date(quiz.createdAt).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>{quiz.questionsCount}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="col-span-1">
+                      {quiz.quiz.numberOfQuestions}
+                    </TableCell>
+                    <TableCell className="col-span-1">
+                      <Link href={`/quiz/view/${quiz.quizId}`} prefetch={true}>
+                        <Button variant="ghost" size="icon">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Link href={`/quiz/${quiz.quizId}`} prefetch={true}>
+                        <Button variant="ghost" size="icon">
+                          <Play className="h-4 w-4" />
+                        </Button>
+                      </Link>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleView(quiz.id)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleTake(quiz.id)}
-                      >
-                        <Play className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(quiz.id)}
+                        onClick={() => handleDelete(quiz.quizId)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

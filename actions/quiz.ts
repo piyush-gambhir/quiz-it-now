@@ -7,7 +7,7 @@ export async function generateQuiz({
   inputType,
   numberOfQuestions = 5,
   difficulty = 'Easy',
-  model = 'meta-llama/Llama-3.2-3B-Instruct',
+  model = 'nvidia/llama-3.1-nemotron-70b-instruct',
 }: {
   input: any;
   inputType: 'text' | 'link' | 'file';
@@ -34,31 +34,19 @@ export async function generateQuiz({
           difficulty,
         }),
       },
-    );
-
-    const rawResponse = await response.text();
-    let data;
-    try {
-      data = JSON.parse(rawResponse);
-    } catch (parseError) {
-      console.error('Failed to parse JSON response:', parseError);
-      throw new Error('Failed to parse server response.');
-    }
-
-    if (!response.ok) {
-      throw new Error(data?.message || 'Failed to generate the quiz.');
+    ).then((res) => res.json());
+    if (!response.success) {
+      throw new Error(response.error);
     }
     return {
       success: true,
-      data: data.data.quizId,
+      data: response.data,
     };
   } catch (error: any) {
     console.error('Error generating questions:', error);
     return {
       success: false,
-      message:
-        error.message ||
-        'An unexpected error occurred while generating the quiz.',
+      error: error,
     };
   }
 }
@@ -80,8 +68,8 @@ export async function getQuizzes({
       const errorData = await response.json();
       throw new Error(errorData?.message || 'Failed to fetch quizzes.');
     }
-
-    return response.json();
+    const data = await response.json();
+    return data.quizzes;
   } catch (error: any) {
     console.error('Error fetching quizzes:', error);
     return {

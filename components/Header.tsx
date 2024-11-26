@@ -1,6 +1,15 @@
 'use client';
 
-import { Book, LogOut, Menu, Sunset, Trees, User, Zap } from 'lucide-react';
+import {
+  Book,
+  FileText,
+  LogOut,
+  Menu,
+  Sunset,
+  Trees,
+  User,
+  Zap,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -225,6 +234,20 @@ const Header = () => {
               >
                 Blog
               </Link>
+              {session?.status === 'authenticated' && (
+                <Link
+                  className={cn(
+                    'text-muted-foreground',
+                    navigationMenuTriggerStyle,
+                    buttonVariants({
+                      variant: 'ghost',
+                    }),
+                  )}
+                  href="/quiz"
+                >
+                  My Quizzes
+                </Link>
+              )}
             </div>
           </div>
           {session?.status === 'unauthenticated' ? (
@@ -258,7 +281,12 @@ const Header = () => {
                     Profile
                   </DropdownMenuItem>
                 </Link>
-                <DropdownMenuSeparator />
+                <Link href="/my-quizzes">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <FileText className="mr-2 h-4 w-4" />
+                    My Quizzes
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="cursor-pointer"
@@ -297,6 +325,8 @@ const Header = () => {
                         src="https://www.shadcnblocks.com/images/block/block-1.svg"
                         className="w-8"
                         alt="logo"
+                        width={32}
+                        height={32}
                       />
                       <span className="text-xl font-bold">Quiz Master</span>
                     </div>
@@ -366,6 +396,11 @@ const Header = () => {
                   <Link href="/blog" className="font-semibold">
                     Blog
                   </Link>
+                  {session?.status === 'authenticated' && (
+                    <Link href="/my-quizzes" className="font-semibold">
+                      My Quizzes
+                    </Link>
+                  )}
                 </div>
                 {session?.status === 'authenticated' ? (
                   <div className="border-t pt-4">
@@ -373,6 +408,9 @@ const Header = () => {
                       <Link href="/profile">
                         <Button variant={'outline'}>Profile</Button>
                       </Link>
+                      <Button variant={'outline'} onClick={handleLogout}>
+                        Log out
+                      </Button>
                     </div>
                   </div>
                 ) : (

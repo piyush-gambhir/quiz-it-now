@@ -21,6 +21,8 @@ export const env = createEnv({
     AWS_ACCESS_KEY_ID: z.string(),
     AWS_SECRET_ACCESS_KEY: z.string(),
     S3_BUCKET_NAME: z.string(),
+    DATA_SCRAPING_BACKEND_URL: z.string(),
+    NVIDIA_API_KEY: z.string(),
   },
 
   /**
@@ -46,10 +48,12 @@ export const env = createEnv({
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     HUGGINGFACE_API_KEY: process.env.HUGGINGFACE_API_KEY,
+    NVIDIA_API_KEY: process.env.NVIDIA_API_KEY,
     AWS_REGION: process.env.AWS_REGION,
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
     S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
+    DATA_SCRAPING_BACKEND_URL: process.env.DATA_SCRAPING_BACKEND_URL,
   },
   /**
    Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

@@ -141,7 +141,7 @@ export default function QuizGeneratorPage() {
         );
         return;
       }
-      router.push(`/quiz/${generatedQuiz.data}`);
+      router.push(`/quiz/${generatedQuiz.data.quizId}`);
     } catch (error: any) {
       console.error('Unexpected error generating questions:', error);
       setError(

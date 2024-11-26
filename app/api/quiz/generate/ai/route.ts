@@ -1,39 +1,37 @@
-import { HfInference } from '@huggingface/inference';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
+import { z } from 'zod';
+
+import {
+  ChatMessage,
+  getChatCompletion as getNvidiaChatCompletion,
+} from '@/helpers/nvidia';
+import {
+  generateQuizFormHTMLPrompt,
+  generateQuizFormTextPrompt,
+  generateQuizFromTranscriptPrompt,
+} from '@/helpers/prompts/generateQuizPrompts';
 
 import logger from '@/lib/logger/winston';
 import { db } from '@/lib/mongo/client';
 import { generateUUIDv4 } from '@/lib/utils/generateUUID';
 
-interface GenerateQuizRequest {
-  input: string | FileInput;
-  inputType: 'text' | 'link' | 'file';
-  numberOfQuestions: number;
-  model?: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard' | 'God Mode';
-  userId: string;
-}
+const fileInputSchema = z.object({
+  name: z.string().min(1),
+  type: z.string().min(1),
+  url: z.string().url(),
+});
 
-interface FileInput {
-  name: string;
-  type: string;
-  url: string;
-}
+const generateQuizRequestSchema = z.object({
+  userId: z.string().min(1),
+  input: z.union([z.string(), fileInputSchema, z.string().url()]),
+  inputType: z.enum(['text', 'file', 'link']),
+  numberOfQuestions: z.number().int().positive().default(5),
+  difficulty: z.enum(['Easy', 'Medium', 'Hard', 'God Mode']).default('Easy'),
+  model: z.string().default('nvidia/llama-3.1-nemotron-70b-instruct'),
+});
 
-interface QuizResponse {
-  model: string;
-  quiz: {
-    numberOfQuestions: number;
-    title: string;
-    description: string;
-    difficulty: string;
-    topic: string;
-    tags: string[];
-    questions: QuizQuestion[];
-  };
-}
+type GenerateQuizRequest = z.infer<typeof generateQuizRequestSchema>;
 
 interface QuizQuestion {
   id: string;
@@ -53,199 +51,29 @@ interface LLMResponse {
   tags: string[];
   questions: QuizQuestion[];
 }
-const buildPromptText = (
-  text: string,
-  numberOfQuestions: number,
-  difficulty: string,
-): string => {
-  return `
-    You are an AI assistant specialized in creating educational content. Your task is to generate a single, well-structured JSON object for a quiz based on the provided input text.
-
-    **Instructions:**
-
-    - **Quiz Generation**:
-        - Generate a quiz with **exactly ${numberOfQuestions}** questions.
-        - The questions should be based on the **key themes, details, and complexities** of the input text.
-        - **Question Types**: Include a mix of the following question types:
-            - **Multiple-choice (MCQ)**: One correct answer and three plausible distractors (total of four options).
-            - **True/False**: Statements that are either true or false, with options "True" and "False".
-            - **Fill-in-the-Blank**: Sentences with a missing word or phrase, provided with four options to choose from.
-    - **Difficulty Level**:
-        - The quiz should match the selected difficulty level: **${difficulty}**.
-            - **Easy**: Basic facts and straightforward concepts.
-            - **Medium**: Detailed understanding and slight inference.
-            - **Hard**: Deep understanding and critical thinking.
-            - **God Mode**: Complex analysis and synthesis of ideas.
-    - **Metadata**:
-        - Include the following at the top level of the JSON:
-            - \`"title"\`: A concise, generated title based on the input content.
-            - \`"description"\`: A brief description generated from the input content.
-            - \`"difficulty"\`: The selected difficulty level ("${difficulty}").
-            - \`"topic"\`: The main topic or subject area of the input content.
-            - \`"tags"\`: A list of relevant tags related to the input content.
-            - \`"questions"\`: An array containing the generated questions.
-
-    **Rules:**
-
-    - **Number of Questions**:
-        - Use the **number of questions specified by the user**: **${numberOfQuestions}**.
-        - Do not exceed this number, even if the input text is long.
-    - **Input Length Validation**:
-        - If the input text is **under 500 words**, do not generate a quiz. Instead, return the following JSON:
-        {"error": "Input text must be at least 500 words to generate a quiz."}
-    - **Question Structure**:
-        - Each question should include:
-            - \`"type"\`: One of \`"multiple-choice"\`, \`"true/false"\`, \`"fill-in-the-blank"\`.
-            - \`"question"\`: The text of the question.
-            - \`"options"\`: A list of options:
-                - **For MCQ and Fill-in-the-Blank**: Four options to choose from.
-                - **For True/False**: ["True", "False"].
-            - \`"answer"\`: The correct answer text (must match one of the options).
-            - \`"explanation"\`: A brief explanation for the answer.
-            - \`"tags"\`: Relevant tags for the question.
-    - **Output Format**:
-        - **Return only a single JSON object** that encapsulates all metadata and questions.
-        - The JSON structure should be as follows:
-        {
-            "title": "Generated Title",
-            "description": "Generated Description",
-            "difficulty": "Medium",
-            "topic": "Main Topic",
-            "tags": ["Tag1", "Tag2"],
-            "questions": [
-                {
-                    "type": "multiple-choice",
-                    "question": "Question 1?",
-                    "options": ["Option A", "Option B", "Option C", "Option D"],
-                    "answer": "Option A",
-                    "explanation": "Explanation for Option A.",
-                    "tags": ["Tag1"]
-                },
-                ...
-            ]
-        }
-        - Ensure the JSON is **valid** and properly formatted.
-        - **Do not include any text outside of the JSON format.**
-        - **Do not include multiple JSON objects or any additional text. Ensure that all questions are contained within the "questions" array of the JSON object.**
-
-    **Input Text:**
-
-    ${text}
-
-    **Output only valid JSON. Do not include multiple JSON objects or any additional text. Ensure that all questions are contained within the "questions" array of the JSON object.**
-  `;
-};
-
-const buildPromptHTML = (
-  html: string,
-  numberOfQuestions: number,
-  difficulty: string,
-): string => {
-  return `
-    You are an AI assistant specialized in creating educational content. Your task is to generate a single, well-structured JSON object for a quiz based on the provided input HTML.
-
-    **Instructions:**
-
-    - **HTML Processing**:
-        - Analyze the provided HTML content.
-        - Extract the main textual content, removing all HTML tags, scripts, styles, and any irrelevant sections such as advertisements, navigation menus, or footers.
-        - Ensure that the extracted text is coherent and preserves the key themes and information from the original HTML.
-
-    - **Quiz Generation**:
-        - Based on the extracted text, generate a quiz with **exactly ${numberOfQuestions}** questions.
-        - The questions should focus on the **key themes, details, and complexities** of the extracted content.
-        - **Question Types**: Include a mix of the following question types:
-            - **Multiple-choice (MCQ)**: One correct answer and three plausible distractors (total of four options).
-            - **True/False**: Statements that are either true or false, with options "True" and "False".
-            - **Fill-in-the-Blank**: Sentences with a missing word or phrase, provided with four options to choose from.
-
-    - **Difficulty Level**:
-        - The quiz should match the selected difficulty level: **${difficulty}**.
-            - **Easy**: Basic facts and straightforward concepts.
-            - **Medium**: Detailed understanding and slight inference.
-            - **Hard**: Deep understanding and critical thinking.
-            - **God Mode**: Complex analysis and synthesis of ideas.
-
-    - **Metadata**:
-        - Include the following at the top level of the JSON:
-            - \`"title"\`: A concise, generated title based on the extracted content.
-            - \`"description"\`: A brief description generated from the extracted content.
-            - \`"difficulty"\`: The selected difficulty level ("${difficulty}").
-            - \`"topic"\`: The main topic or subject area of the extracted content.
-            - \`"tags"\`: A list of relevant tags related to the extracted content.
-            - \`"questions"\`: An array containing the generated questions.
-
-    **Rules:**
-
-    - **Number of Questions**:
-        - Use the **number of questions specified by the user**: **${numberOfQuestions}**.
-        - Do not exceed this number, even if the extracted text is extensive.
-
-    - **Input Length Validation**:
-        - If the extracted text is **under 500 words**, do not generate a quiz. Instead, return the following JSON:
-        {"error": "Extracted text must be at least 500 words to generate a quiz."}
-
-    - **Question Structure**:
-        - Each question should include:
-            - \`"type"\`: One of \`"multiple-choice"\`, \`"true/false"\`, \`"fill-in-the-blank"\`.
-            - \`"question"\`: The text of the question.
-            - \`"options"\`: A list of options:
-                - **For MCQ and Fill-in-the-Blank**: Four options to choose from.
-                - **For True/False**: ["True", "False"].
-            - \`"answer"\`: The correct answer text (must match one of the options).
-            - \`"explanation"\`: A brief explanation for the answer.
-            - \`"tags"\`: Relevant tags for the question.
-
-    - **Output Format**:
-        - **Return only a single JSON object** that encapsulates all metadata and questions.
-        - The JSON structure should be as follows:
-        {
-            "title": "Generated Title",
-            "description": "Generated Description",
-            "difficulty": "Medium",
-            "topic": "Main Topic",
-            "tags": ["Tag1", "Tag2"],
-            "questions": [
-                {
-                    "type": "multiple-choice",
-                    "question": "Question 1?",
-                    "options": ["Option A", "Option B", "Option C", "Option D"],
-                    "answer": "Option A",
-                    "explanation": "Explanation for Option A.",
-                    "tags": ["Tag1"]
-                },
-                ...
-            ]
-        }
-        - Ensure the JSON is **valid** and properly formatted.
-        - **Do not include any text outside of the JSON format.**
-        - **Do not include multiple JSON objects or any additional text. Ensure that all questions are contained within the "questions" array of the JSON object.**
-
-    **Extracted Text:**
-
-    ${html}
-
-    **Output only valid JSON. Do not include multiple JSON objects or any additional text. Ensure that all questions are contained within the "questions" array of the JSON object.**
-  `;
-};
 
 const formatJson = (
   jsonString: string,
 ): LLMResponse | { error: string } | null => {
   try {
+    logger.debug('Starting JSON formatting');
     jsonString = jsonString.replace(/```json|```/g, '');
 
     const jsonRegex = /(\{[\s\S]*\})/;
     const jsonMatch = jsonRegex.exec(jsonString);
     if (!jsonMatch) {
+      logger.warn('No valid JSON object found in response');
       return { error: 'No valid JSON object found in the response.' };
     }
 
     const cleanJsonString = jsonMatch[1].trim();
+    logger.debug('Cleaned JSON string:', cleanJsonString);
 
     const jsonData = JSON.parse(cleanJsonString);
+    logger.debug('Successfully parsed JSON data');
 
     if ('error' in jsonData) {
+      logger.warn('Error found in JSON data:', jsonData.error);
       return jsonData;
     }
 
@@ -259,16 +87,19 @@ const formatJson = (
     ];
     for (const field of requiredMetadata) {
       if (!(field in jsonData)) {
+        logger.warn(`Missing required field in JSON: ${field}`);
         return { error: `Invalid JSON structure: Missing '${field}' field.` };
       }
     }
 
     if (!Array.isArray(jsonData.questions)) {
+      logger.warn('Questions field is not an array');
       return { error: "Invalid JSON format: 'questions' should be a list." };
     }
 
     for (const item of jsonData.questions) {
       if (!item.id) {
+        logger.debug('Generating missing question ID');
         item.id = uuidv4();
       }
       if (
@@ -277,6 +108,7 @@ const formatJson = (
           item.type,
         )
       ) {
+        logger.warn(`Invalid question type found: ${item.type}`);
         return {
           error: `Invalid question type: '${item.type}' is not allowed.`,
         };
@@ -288,6 +120,7 @@ const formatJson = (
         !item.explanation ||
         !item.tags
       ) {
+        logger.warn('Question missing required fields');
         return {
           error: `Invalid question structure: Missing required fields in question.`,
         };
@@ -296,10 +129,13 @@ const formatJson = (
 
     jsonData.questions.forEach((question: QuizQuestion) => {
       question.id = generateUUIDv4();
+      logger.debug(`Generated UUID for question: ${question.id}`);
     });
 
+    logger.info('Successfully formatted and validated JSON response');
     return jsonData as LLMResponse;
   } catch (e) {
+    logger.error('Error while parsing JSON response:', e);
     return { error: 'Error while parsing JSON response.' };
   }
 };
@@ -308,34 +144,24 @@ const generateLLMResponse = async (
   prompt: string,
   retries: number = 3,
 ): Promise<LLMResponse | { error: string } | null> => {
-  const inference = new HfInference(process.env.HUGGINGFACE_API_KEY);
-
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
+      logger.info(`Starting LLM generation attempt ${attempt}`);
       let fullResponse = '';
 
-      const inferenceResponse = inference.chatCompletionStream({
-        model: 'meta-llama/Llama-3.2-3B-Instruct',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        max_tokens: 2048,
-      });
+      const model = 'nvidia/llama-3.1-nemotron-70b-instruct';
+      const messages: ChatMessage[] = [{ role: 'user', content: prompt }];
 
-      for await (const chunk of inferenceResponse) {
-        if (chunk.choices && chunk.choices.length > 0) {
-          const newContent = chunk.choices[0].delta.content;
-          fullResponse += newContent;
-        }
+      logger.debug(`Using model: ${model}`);
+      for await (const text of getNvidiaChatCompletion(model, messages)) {
+        fullResponse += text;
       }
 
       logger.info(`LLM Response (Attempt ${attempt}): ${fullResponse}`);
 
       const formattedData = formatJson(fullResponse);
       if (formattedData && !('error' in formattedData)) {
+        logger.info('Successfully generated and formatted LLM response');
         return formattedData;
       } else if (formattedData && 'error' in formattedData) {
         logger.error(`LLM Error (Attempt ${attempt}): ${formattedData.error}`);
@@ -349,14 +175,15 @@ const generateLLMResponse = async (
       );
       if (attempt === retries) {
         return {
-          error:
-            'Failed to generate a valid response from the Hugging Face Inference API after multiple attempts.',
+          error: 'Failed to generate a valid response from the LLM.',
         };
       }
+      logger.info(`Retrying in ${1000 * attempt}ms`);
       await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
     }
   }
 
+  logger.error('Failed to generate valid response after all retries');
   return {
     error:
       'Failed to generate a valid response from the Hugging Face Inference API after multiple attempts.',
@@ -365,153 +192,45 @@ const generateLLMResponse = async (
 
 export async function POST(req: NextRequest) {
   try {
+    logger.info('Received POST request for quiz generation');
     const data: GenerateQuizRequest = await req.json();
 
-    const {
-      userId,
-      input,
-      inputType,
-      numberOfQuestions,
-      difficulty,
-      model = 'meta-llama/Llama-3.2-3B-Instruct',
-    } = data;
+    try {
+      logger.debug('Validating request data with Zod schema');
+      generateQuizRequestSchema.parse(data); // This will throw an error if validation fails
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        logger.warn('Validation error:', error.errors[0].message);
+        return NextResponse.json(
+          {
+            success: false,
+
+            error: {
+              message: error.errors[0].message,
+              type: 'VALIDATION_ERROR',
+              code: 'VALIDATION_ERROR',
+              params: null,
+            },
+          },
+          { status: 400 },
+        );
+      }
+    }
+
+    const { userId, input, inputType, numberOfQuestions, difficulty, model } =
+      data;
+
     logger.info(`Received quiz generation request: ${JSON.stringify(data)}`);
 
-    // Validate userId
-    if (!userId || typeof userId !== 'string') {
-      logger.warn("Invalid or missing 'userId' field.");
-      return NextResponse.json(
-        {
-          success: false,
-          statusCode: 400,
-          message: "Invalid or missing 'userId' field.",
-          data: null,
-          error: {
-            code: 400,
-            message: "Invalid or missing 'userId' field.",
-          },
-        },
-        { status: 400 },
-      );
-    }
-
-    // Validate numberOfQuestions
-    if (
-      typeof numberOfQuestions !== 'number' ||
-      !Number.isInteger(numberOfQuestions) ||
-      numberOfQuestions <= 0
-    ) {
-      logger.warn("Invalid 'numberOfQuestions' field.");
-      return NextResponse.json(
-        {
-          success: false,
-          statusCode: 400,
-          message:
-            "Invalid 'numberOfQuestions' field. It must be a positive integer.",
-          data: null,
-          error: {
-            code: 400,
-            message:
-              "Invalid 'numberOfQuestions' field. It must be a positive integer.",
-          },
-        },
-        { status: 400 },
-      );
-    }
-
-    // Validate difficulty
-    const validDifficulties = ['Easy', 'Medium', 'Hard', 'God Mode'];
-    if (!validDifficulties.includes(difficulty)) {
-      logger.warn("Invalid 'difficulty' field.");
-      return NextResponse.json(
-        {
-          success: false,
-          statusCode: 400,
-          message: `Invalid 'difficulty' field. Must be one of ${validDifficulties.join(
-            ', ',
-          )}.`,
-          data: null,
-          error: {
-            code: 400,
-            message: `Invalid 'difficulty' field. Must be one of ${validDifficulties.join(
-              ', ',
-            )}.`,
-          },
-        },
-        { status: 400 },
-      );
-    }
-
     let processedText = '';
+    let processedHtml = '';
+    let processedTranscript = '';
     if (inputType === 'text') {
-      if (typeof input !== 'string') {
-        logger.warn("Invalid 'input' field for 'text' inputType.");
-        return NextResponse.json(
-          {
-            success: false,
-            statusCode: 400,
-            message:
-              "Invalid 'input' field. Expected a string for 'text' inputType.",
-            data: null,
-            error: {
-              code: 400,
-              message:
-                "Invalid 'input' field. Expected a string for 'text' inputType.",
-            },
-          },
-          { status: 400 },
-        );
-      }
-      processedText = input;
+      logger.debug('Processing text input');
+      processedText = input as string;
     } else if (inputType === 'file') {
-      if (typeof input !== 'object' || !('url' in input)) {
-        logger.warn("Invalid 'input' field for 'file' inputType.");
-        return NextResponse.json(
-          {
-            success: false,
-            statusCode: 400,
-            message:
-              "Invalid 'input' field. Expected an object with 'name', 'type', and 'url' for 'file' inputType.",
-            data: null,
-            error: {
-              code: 400,
-              message:
-                "Invalid 'input' field. Expected an object with 'name', 'type', and 'url' for 'file' inputType.",
-            },
-          },
-          { status: 400 },
-        );
-      }
-
+      logger.debug('Processing file input');
       const fileInput = input as FileInput;
-
-      if (
-        !fileInput.name ||
-        !fileInput.type ||
-        !fileInput.url ||
-        typeof fileInput.name !== 'string' ||
-        typeof fileInput.type !== 'string' ||
-        typeof fileInput.url !== 'string'
-      ) {
-        logger.warn("Invalid 'file' input data.");
-        return NextResponse.json(
-          {
-            success: false,
-            statusCode: 400,
-            message:
-              "Invalid 'file' input. 'name', 'type', and 'url' must be non-empty strings.",
-            data: null,
-            error: {
-              code: 400,
-              message:
-                "Invalid 'file' input. 'name', 'type', and 'url' must be non-empty strings.",
-            },
-          },
-          { status: 400 },
-        );
-      }
-
-      // Fetch the file content from the URL
       try {
         logger.info(`Fetching file content from URL: ${fileInput.url}`);
         const fileResponse = await fetch(fileInput.url);
@@ -520,108 +239,158 @@ export async function POST(req: NextRequest) {
         }
         const fileContent = await fileResponse.text();
         processedText = fileContent;
+        logger.debug('Successfully processed file content');
       } catch (fileError: any) {
-        logger.error('Error processing file input:', fileError);
+        logger.error('File processing error:', fileError);
         return NextResponse.json(
           {
             success: false,
-            statusCode: 400,
-            message: fileError.message || 'Failed to process the file input.',
-            data: null,
             error: {
-              code: 400,
               message: fileError.message || 'Failed to process the file input.',
+              type: 'VALIDATION_ERROR',
+              code: 'FILE_INPUT_ERROR',
+              params: null,
             },
           },
           { status: 400 },
         );
       }
     } else if (inputType === 'link') {
-      if (typeof input !== 'string') {
-        logger.warn("Invalid 'input' field for 'link' inputType.");
-        return NextResponse.json(
-          {
-            success: false,
-            statusCode: 400,
-            message:
-              "Invalid 'input' field. Expected a string URL for 'link' inputType.",
-            data: null,
-            error: {
-              code: 400,
-              message:
-                "Invalid 'input' field. Expected a string URL for 'link' inputType.",
+      const inputUrl = input as string;
+      if (inputUrl.includes('youtube.com/watch?v=')) {
+        logger.debug('Processing YouTube link');
+        try {
+          const get_youtube_transcript_url = new URL(
+            `${process.env.DATA_SCRAPING_BACKEND_URL}/data-scraper/api/v1/youtube/transcript`,
+          );
+          get_youtube_transcript_url.searchParams.set('url', inputUrl);
+          const response = await fetch(get_youtube_transcript_url).then((res) =>
+            res.json(),
+          );
+          if (!response.success) {
+            throw new Error(response.error);
+          }
+          const transcript = response.data.transcript;
+          processedTranscript += transcript;
+          logger.debug('Successfully fetched YouTube transcript');
+        } catch (error: any) {
+          logger.error('YouTube transcript fetch error:', error);
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                message:
+                  error.message || 'Failed to fetch the YouTube transcript.',
+                type: 'API_ERROR',
+                code: 'YOUTUBE_TRANSCRIPT_API_ERROR',
+                params: null,
+              },
             },
-          },
-          { status: 400 },
-        );
-      }
-
- 
-      try {
-        logger.info(`Fetching content from link: ${input}`);
-        const linkResponse = await fetch(input);
-        if (!linkResponse.ok) {
-          throw new Error('Failed to fetch content from the provided link.');
+            { status: 400 },
+          );
         }
-        const linkContent = await linkResponse.text();
-        processedText = linkContent;
-      } catch (linkError: any) {
-        logger.error('Error processing link input:', linkError);
-        return NextResponse.json(
-          {
-            success: false,
-            statusCode: 400,
-            message: linkError.message || 'Failed to process the link input.',
-            data: null,
-            error: {
-              code: 400,
-              message: linkError.message || 'Failed to process the link input.',
+      } else {
+        logger.debug('Processing web page link');
+        try {
+          const scrape_html_url = new URL(
+            `${process.env.DATA_SCRAPING_BACKEND_URL}/data-scraper/api/v1/scrape/html`,
+          );
+          scrape_html_url.searchParams.set('url', inputUrl);
+          scrape_html_url.searchParams.set('clean', 'true');
+          const response = await fetch(scrape_html_url);
+
+          if (!response.ok) {
+            throw new Error(
+              'Failed to fetch content from the scraping service.',
+            );
+          }
+
+          const data = await response.json();
+          if (!data.success) {
+            throw new Error(
+              data.error.message ||
+                'Failed to scrape content from the provided link.',
+            );
+          }
+
+          processedHtml = data.data.html;
+          logger.debug('Successfully scraped web page content');
+        } catch (error: any) {
+          logger.error('Web scraping error:', error);
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                message: error.error.message,
+                type: 'API_ERROR',
+                code: 'SCRAPING_API_ERROR',
+                params: null,
+              },
             },
-          },
-          { status: 400 },
-        );
+            { status: 400 },
+          );
+        }
       }
     } else {
       logger.warn(`Unsupported 'inputType': ${inputType}`);
       return NextResponse.json(
         {
           success: false,
-          statusCode: 400,
-          message: `Unsupported 'inputType': ${inputType}`,
-          data: null,
           error: {
-            code: 400,
             message: `Unsupported 'inputType': ${inputType}`,
+            type: 'VALIDATION_ERROR',
+            code: 'UNSUPPORTED_INPUT_TYPE',
+            params: null,
           },
         },
         { status: 400 },
       );
     }
 
-    // Validate word count (500 words)
-    const wordCount = processedText.split(/\s+/).length;
-    logger.info(`Processed text word count: ${wordCount}`);
-    if (wordCount < 500) {
-      logger.warn(
-        'Input text does not meet the minimum word count requirement.',
+    let prompt = '';
+    if (processedHtml) {
+      logger.debug('Generating prompt from HTML content');
+      prompt = generateQuizFormHTMLPrompt(
+        processedHtml,
+        numberOfQuestions,
+        difficulty,
       );
-      return NextResponse.json(
-        {
-          success: false,
-          statusCode: 400,
-          message: 'Input text must be at least 500 words to generate a quiz.',
-          data: null,
-          error: {
-            code: 400,
-            message:
-              'Input text must be at least 500 words to generate a quiz.',
+    } else if (processedTranscript) {
+      logger.debug('Generating prompt from transcript');
+      prompt = generateQuizFromTranscriptPrompt(
+        processedTranscript,
+        numberOfQuestions,
+        difficulty,
+      );
+    } else {
+      const wordCount = processedText.split(/\s+/).length;
+      logger.info(`Processed text word count: ${wordCount}`);
+      if (wordCount < 250) {
+        logger.warn(
+          'Input text does not meet the minimum word count requirement.',
+        );
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              message:
+                'Input text must be at least 250 words to generate a quiz.',
+              type: 'VALIDATION_ERROR',
+              code: 'MINIMUM_WORD_COUNT_ERROR',
+              params: null,
+            },
           },
-        },
-        { status: 400 },
+          { status: 400 },
+        );
+      }
+      logger.debug('Generating prompt from text content');
+      prompt = generateQuizFormTextPrompt(
+        processedText,
+        numberOfQuestions,
+        difficulty,
       );
     }
 
-    const prompt = buildPromptText(processedText, numberOfQuestions, difficulty);
     logger.info('Prompt for LLM generation:', prompt);
 
     const llmResult = await generateLLMResponse(prompt);
@@ -631,34 +400,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          statusCode: 500,
-          message:
-            'Failed to generate or parse the response from the language model.',
-          data: null,
           error: {
-            code: 500,
             message:
               'Failed to generate or parse the response from the language model.',
+            type: 'LLM_ERROR',
+            code: 'LLM_GENERATION_ERROR',
+            params: null,
           },
         },
         { status: 500 },
-      );
-    }
-
-    if ('error' in llmResult) {
-      logger.error(`LLM Error: ${llmResult.error}`);
-      return NextResponse.json(
-        {
-          success: false,
-          statusCode: 400,
-          message: llmResult.error,
-          data: null,
-          error: {
-            code: 400,
-            message: llmResult.error,
-          },
-        },
-        { status: 400 },
       );
     }
 
@@ -679,6 +429,7 @@ export async function POST(req: NextRequest) {
     };
 
     try {
+      logger.debug('Connecting to database');
       const database = await db;
       const collection = database.collection('quizzes');
       await collection.insertOne(quizData);
@@ -688,11 +439,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          statusCode: 500,
-          message: 'Failed to save quiz to the database.',
-          data: null,
           error: {
-            code: 500,
+            type: 'DATABASE_ERROR',
+            code: 'DATABASE_INSERTION_ERROR',
+            params: null,
             message: 'Failed to save quiz to the database.',
           },
         },
@@ -704,13 +454,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        statusCode: 200,
         message: 'Quiz generated successfully.',
         data: quizData,
-        error: {
-          code: null,
-          message: null,
-        },
       },
       { status: 200 },
     );
@@ -719,12 +464,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        statusCode: 500,
-        message: 'An unexpected error occurred.',
-        data: null,
         error: {
-          code: 500,
           message: 'An unexpected error occurred.',
+          type: 'SERVER_ERROR',
+          code: 'SERVER_ERROR',
+          params: null,
         },
       },
       { status: 500 },
