@@ -14,7 +14,7 @@ import {
 
 import logger from '@/lib/logger/winston';
 import { db } from '@/lib/mongo/client';
-import { generateUUIDv4 } from '@/lib/utils/generateUUID';
+import { generateUUIDv4 } from '@/lib/utils/generate-uuid';
 
 const fileInputSchema = z.object({
   name: z.string().min(1),
@@ -230,16 +230,44 @@ export async function POST(req: NextRequest) {
       processedText = input as string;
     } else if (inputType === 'file') {
       logger.debug('Processing file input');
-      const fileInput = input as FileInput;
+      const fileInput = input as z.infer<typeof fileInputSchema>;
       try {
-        logger.info(`Fetching file content from URL: ${fileInput.url}`);
-        const fileResponse = await fetch(fileInput.url);
-        if (!fileResponse.ok) {
-          throw new Error('Failed to fetch the file from the provided URL.');
+        if (fileInput.type.includes('pdf')) {
+          logger.debug('Processing PDF file');
+          const pdf_to_text_url = new URL(
+            `${process.env.DATA_SCRAPING_BACKEND_URL}/data-scraper/api/v1/pdf/to_text`,
+          );
+          const pdfResponse = await fetch(pdf_to_text_url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              pdf_url: fileInput.url,
+            }),
+          });
+
+          if (!pdfResponse.ok) {
+            throw new Error('Failed to convert PDF to text.');
+          }
+
+          const pdfData = await pdfResponse.json();
+          if (!pdfData.success) {
+            throw new Error(pdfData.error || 'Failed to process PDF file.');
+          }
+
+          processedText = pdfData.data.text;
+          logger.debug('Successfully processed PDF content');
+        } else {
+          logger.info(`Fetching file content from URL: ${fileInput.url}`);
+          const fileResponse = await fetch(fileInput.url);
+          if (!fileResponse.ok) {
+            throw new Error('Failed to fetch the file from the provided URL.');
+          }
+          const fileContent = await fileResponse.text();
+          processedText = fileContent;
+          logger.debug('Successfully processed file content');
         }
-        const fileContent = await fileResponse.text();
-        processedText = fileContent;
-        logger.debug('Successfully processed file content');
       } catch (fileError: any) {
         logger.error('File processing error:', fileError);
         return NextResponse.json(

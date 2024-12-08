@@ -1,5 +1,5 @@
 import { Inter } from '@/fonts/fonts';
-import { Providers } from '@/providers/provider';
+import { Providers } from '@/providers/Providers';
 
 import type { Metadata } from 'next';
 import React from 'react';

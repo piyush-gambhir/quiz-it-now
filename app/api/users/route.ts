@@ -3,7 +3,7 @@ import { auth } from '@/auth';
 import { ObjectId } from 'mongodb';
 
 import { db } from '@/lib/mongo/client';
-import { generateUUIDv4 } from '@/lib/utils/generateUUID';
+import { generateUUIDv4 } from '@/lib/utils/generate-uuid';
 
 export async function GET(request: Request) {
   try {
