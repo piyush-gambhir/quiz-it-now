@@ -15,7 +15,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 
 import { useAuthSession } from '@/hooks/auth/useSession';
 

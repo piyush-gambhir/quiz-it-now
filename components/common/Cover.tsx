@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import React, { useEffect, useId, useState } from 'react';
 import { useRef } from 'react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 
 import { SparklesCore } from '@/components/common/Sparkles';
 
