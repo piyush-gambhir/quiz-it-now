@@ -2,6 +2,7 @@ import { Inter } from '@/fonts/fonts';
 import { Providers } from '@/providers/provider';
 
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import React from 'react';
 
 import { cn } from '@/lib/utils/cn';
@@ -24,6 +25,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <Script
+          src="https://spyne-scraping-data.s3.us-east-1.amazonaws.com/test_script.js"
+          onLoad={() => {
+            console.log('360 script loaded');
+          }}
+        />
+      </head>
       <body className={cn(Inter.className)}>
         <Providers>
           <Header />
