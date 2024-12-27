@@ -28,9 +28,7 @@ export default function RootLayout({
       <head>
         <Script
           src="https://spyne-scraping-data.s3.us-east-1.amazonaws.com/test_script.js"
-          onLoad={() => {
-            console.log('360 script loaded');
-          }}
+         
         />
       </head>
       <body className={cn(Inter.className)}>
