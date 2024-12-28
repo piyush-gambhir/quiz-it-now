@@ -26,7 +26,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <Script src="https://spyne-scraping-data.s3.us-east-1.amazonaws.com/test_script.js"></Script>
       </head>
       <body className={cn(Inter.className)}>
         <Providers>
