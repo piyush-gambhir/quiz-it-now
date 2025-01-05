@@ -13,9 +13,9 @@ import Header from '@/components/Header';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Quiz Master',
+  title: 'QuizItNow',
   description:
-    'Quiz Masteris a platform that allows you to create and customize quizzes effortlessly using AI.',
+    'QuizItNow is a platform that allows you to create and customize quizzes effortlessly using AI with any input source.',
 };
 
 export default function RootLayout({
@@ -25,8 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-      </head>
+      <head></head>
       <body className={cn(Inter.className)}>
         <Providers>
           <Header />

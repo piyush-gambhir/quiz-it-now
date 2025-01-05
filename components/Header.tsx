@@ -114,13 +114,6 @@ const Header = () => {
         <nav className="hidden justify-between lg:flex">
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2">
-              <Image
-                src="https://www.shadcnblocks.com/images/block/block-1.svg"
-                className="w-8"
-                alt="logo"
-                width={32}
-                height={32}
-              />
               <span className="text-xl font-bold">QuizItNow</span>
             </Link>
             <div className="flex items-center">
