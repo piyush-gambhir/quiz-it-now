@@ -1,10 +1,22 @@
 import OpenAI from 'openai';
 
-// Define the OpenAI instance with API key and base URL
-const openai = new OpenAI({
-    apiKey: process.env.NVIDIA_API_KEY as string,
-    baseURL: 'https://integrate.api.nvidia.com/v1',
-});
+// Lazy initialization of OpenAI client
+let openai: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+    if (!openai) {
+        const nvidiaApiKey = process.env.NVIDIA_API_KEY;
+        if (!nvidiaApiKey) {
+            throw new Error('NVIDIA_API_KEY environment variable is required');
+        }
+
+        openai = new OpenAI({
+            apiKey: nvidiaApiKey,
+            baseURL: 'https://integrate.api.nvidia.com/v1',
+        });
+    }
+    return openai;
+}
 
 // Define the message type for the chat completion
 export type ChatMessage = {
@@ -31,7 +43,8 @@ export async function* getChatCompletion(
     messages: ChatMessage[],
     options: CompletionOptions = {},
 ): AsyncGenerator<string> {
-    const completion = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const completion = await client.chat.completions.create({
         model,
         messages,
         stream: true,
