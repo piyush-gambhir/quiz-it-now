@@ -70,14 +70,7 @@ const TableHead = React.forwardRef<
     HTMLTableCellElement,
     React.ThHTMLAttributes<HTMLTableCellElement>
 >(({ className, ...props }, ref) => (
-    <th
-        ref={ref}
-        className={cn(
-            'h-10 px-2 text-left align-middle font-medium  [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
-            className,
-        )}
-        {...props}
-    />
+    <th ref={ref} className={cn(className)} {...props} />
 ));
 TableHead.displayName = 'TableHead';
 
@@ -100,7 +93,11 @@ const TableCaption = React.forwardRef<
     HTMLTableCaptionElement,
     React.HTMLAttributes<HTMLTableCaptionElement>
 >(({ className, ...props }, ref) => (
-    <caption ref={ref} className={cn('mt-4 text-sm ', className)} {...props} />
+    <caption
+        ref={ref}
+        className={cn('mt-4 text-sm text-muted-foreground', className)}
+        {...props}
+    />
 ));
 TableCaption.displayName = 'TableCaption';
 

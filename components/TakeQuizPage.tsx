@@ -14,7 +14,7 @@ import {
     Target,
     XCircle,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import {
     Accordion,
@@ -86,47 +86,40 @@ export default function InteractiveQuizPage({
 
     const numberOfQuestions = quizData?.quiz?.questions?.length || 0;
 
-    const handleNextQuestion = useCallback(() => {
-        if (autoProgressTimer) {
-            clearTimeout(autoProgressTimer);
-        }
+    const handleStartQuiz = () => {
+        setQuizStarted(true);
+        setTimer(60);
+    };
+
+    const handleAnswerChange = (questionId: string, answer: string) => {
+        setUserAnswers((prev) => ({
+            ...prev,
+            [questionId]: answer,
+        }));
+        setIsAnswered(true);
+    };
+
+    const handleNextQuestion = () => {
         if (currentQuestionIndex < numberOfQuestions - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
-            setShowExplanation(false);
             setIsAnswered(false);
+            setShowExplanation(false);
             setTimer(60);
         } else {
             setShowResults(true);
         }
-    }, [currentQuestionIndex, numberOfQuestions, autoProgressTimer]);
-
-    useEffect(() => {
-        if (quizStarted && !showResults && timer > 0) {
-            const interval = setInterval(() => {
-                setTimer((prevTimer) => prevTimer - 1);
-            }, 1000);
-            return () => clearInterval(interval);
-        } else if (timer === 0) {
-            handleNextQuestion();
-        }
-    }, [timer, showResults, quizStarted, handleNextQuestion]);
-
-    useEffect(() => {
         if (autoProgressTimer) {
-            return () => clearTimeout(autoProgressTimer);
+            clearTimeout(autoProgressTimer);
         }
-    }, [autoProgressTimer]);
-
-    const handleStartQuiz = () => {
-        setQuizStarted(true);
     };
 
-    const handleAnswerChange = (questionId: string, answer: string) => {
-        setUserAnswers((prev) => ({ ...prev, [questionId]: answer }));
-        setIsAnswered(true);
+    const handleAnswerSubmit = () => {
+        const currentQuestion =
+            quizData?.quiz?.questions?.[currentQuestionIndex];
+        if (!currentQuestion) return;
+
         const isCorrect =
-            answer ===
-            quizData?.quiz?.questions?.[currentQuestionIndex]?.answer;
+            userAnswers[currentQuestion.id] === currentQuestion.answer;
 
         if (isCorrect) {
             setStreak((prevStreak) => {

@@ -1,11 +1,10 @@
 import { Inter } from '@/fonts/fonts';
-import { Providers } from '@/providers/provider';
+import { Providers } from '@/providers/Providers';
 
 import type { Metadata } from 'next';
 import React from 'react';
 
-import { cn } from '@/lib/utils/cn';
-
+import { cn } from '@/lib/utils';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 

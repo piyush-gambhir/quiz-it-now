@@ -214,12 +214,7 @@ const MenubarShortcut = ({
     className,
     ...props
 }: React.HTMLAttributes<HTMLSpanElement>) => {
-    return (
-        <span
-            className={cn('ml-auto text-xs tracking-widest ', className)}
-            {...props}
-        />
-    );
+    return <span {...props} />;
 };
 MenubarShortcut.displayname = 'MenubarShortcut';
 

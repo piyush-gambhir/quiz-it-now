@@ -12,13 +12,7 @@ export async function Providers({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    let authSession;
-    try {
-        authSession = await auth();
-    } catch (error) {
-        console.warn('Auth session error:', error);
-        authSession = null;
-    }
+    const authSession = await auth();
 
     // Only render NextAuthSessionProvider if session is not null
     return (

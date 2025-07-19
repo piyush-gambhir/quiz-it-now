@@ -1,4 +1,3 @@
-// File: /components/QuizGeneratorPage.tsx
 'use client';
 
 import { CornerDownLeft, FileText, Link, Paperclip } from 'lucide-react';
@@ -7,8 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { generateQuiz } from '@/actions/quiz';
 
-import { putToS3 } from '@/lib/aws/s3/put-to-s3';
-import { generateUUIDv4 } from '@/lib/utils/generateUUID';
+import { useAuthSession } from '@/hooks/auth/useSession';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,12 +27,6 @@ import {
 
 import LoadingModal from '@/components/common/LoadingModal';
 
-// File: /components/QuizGeneratorPage.tsx
-
-// File: /components/QuizGeneratorPage.tsx
-
-// File: /components/QuizGeneratorPage.tsx
-
 export default function QuizGeneratorPage() {
     const [text, setText] = useState('');
     const [file, setFile] = useState({
@@ -43,9 +35,8 @@ export default function QuizGeneratorPage() {
         type: '',
     });
     const [link, setLink] = useState('');
-    const [questions, setQuestions] = useState<string[]>([]);
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
     const [inputType, setInputType] = useState<'text' | 'link' | 'file'>(
         'text',
     );
@@ -55,73 +46,79 @@ export default function QuizGeneratorPage() {
     >('Easy');
 
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-
     const router = useRouter();
+    const { data: session } = useAuthSession();
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            const fileName = `uploads/${Date.now()}-${file.name}`;
-            try {
-                await putToS3(
-                    'quiz-it-now-s3',
-                    fileName,
-                    Buffer.from(await file.arrayBuffer()),
-                );
-                setFile({
-                    name: file.name,
-                    url: fileName,
-                    type: file.type,
-                });
-            } catch (uploadError: any) {
-                console.error('File upload error:', uploadError);
-                setError('Failed to upload the file. Please try again.');
-            }
-        }
+        const selectedFile = e.target.files?.[0];
+        if (!selectedFile) return;
+
+        setFile({
+            name: selectedFile.name,
+            url: URL.createObjectURL(selectedFile),
+            type: selectedFile.type,
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!session?.user?.id) {
+            setError('Please log in to generate quizzes.');
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
         try {
-            let inputData;
-            if (inputType === 'text') {
-                inputData = text;
-            } else if (inputType === 'file') {
-                if (!file.url) {
-                    setError(
-                        'Please upload a file before generating the quiz.',
-                    );
-                    setLoading(false);
-                    return;
-                }
-                inputData = file;
-            } else if (inputType === 'link') {
-                inputData = link;
+            let inputData: string | { name: string; type: string; url: string };
+            let inputTypeValue: 'text' | 'link' | 'file';
+
+            switch (inputType) {
+                case 'text':
+                    if (!text.trim()) {
+                        throw new Error(
+                            'Please enter some text to generate a quiz.',
+                        );
+                    }
+                    inputData = text;
+                    inputTypeValue = 'text';
+                    break;
+                case 'file':
+                    if (!file.name) {
+                        throw new Error('Please select a file to upload.');
+                    }
+                    inputData = {
+                        name: file.name,
+                        type: file.type,
+                        url: file.url,
+                    };
+                    inputTypeValue = 'file';
+                    break;
+                case 'link':
+                    if (!link.trim()) {
+                        throw new Error('Please enter a valid link.');
+                    }
+                    inputData = link;
+                    inputTypeValue = 'link';
+                    break;
+                default:
+                    throw new Error('Invalid input type.');
             }
 
-            const generatedQuiz = await generateQuiz({
+            const result = await generateQuiz({
                 input: inputData,
-                inputType,
+                inputType: inputTypeValue,
                 numberOfQuestions,
                 difficulty,
             });
 
-            if (!generatedQuiz?.success) {
-                // If the response indicates failure, set the error message
-                setError(
-                    generatedQuiz?.message ||
-                        'Failed to generate quiz. Please try again.',
-                );
-                return;
+            if (result.success && result.data?.quizId) {
+                router.push(`/quiz/view/${result.data.quizId}`);
+            } else {
+                setError(result.error?.message || 'Failed to generate quiz.');
             }
-
-            // Navigate to the quiz details page on success
-            router.push(`/quiz/${generatedQuiz.data}`);
         } catch (error: any) {
-            // Catch any unexpected errors and display a message
             console.error('Unexpected error generating questions:', error);
             setError(
                 error.message ||
@@ -154,13 +151,15 @@ export default function QuizGeneratorPage() {
             case 'file':
                 return (
                     <div
-                        className="cursor-pointer border-0 p-3 w-full h-[200px] flex items-center justify-center "
                         onClick={() =>
                             document.getElementById('file-input')?.click()
                         }
+                        className="flex items-center justify-center w-full h-[200px] border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
                     >
                         {file.name ? (
-                            <span>{file.name}</span>
+                            <span className="text-center">
+                                Selected: {file.name}
+                            </span>
                         ) : (
                             <span className="text-center">
                                 Click to upload a file
@@ -172,6 +171,7 @@ export default function QuizGeneratorPage() {
                             onChange={handleFileChange}
                             className="hidden"
                             accept=".pdf,.docx,image/*,audio/*,video/*"
+                            aria-label="Upload file"
                         />
                     </div>
                 );
@@ -195,149 +195,158 @@ export default function QuizGeneratorPage() {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen ">
-            <LoadingModal isOpen={loading} message="Generating Questions" />
-            <main className="w-full max-w-5xl px-4">
-                <form
-                    className="relative overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
-                    onSubmit={handleSubmit}
-                >
-                    <Label htmlFor="message" className="sr-only">
-                        Message
-                    </Label>
-                    {renderInput()}
+        <div className="min-h-screen bg-background">
+            <LoadingModal isOpen={loading} />
+            <main className="container mx-auto px-4 py-8">
+                <div className="max-w-4xl mx-auto">
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-bold mb-2">
+                            Generate Quiz
+                        </h1>
+                        <p className="text-muted-foreground">
+                            Create engaging quizzes from text, files, or links
+                            using AI.
+                        </p>
+                    </div>
 
-                    <div className="flex items-center px-3 py-4 gap-2">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setInputType('text')}
-                                    aria-label="Switch to Text Input"
+                    <form
+                        className="bg-card rounded-lg border shadow-sm"
+                        onSubmit={handleSubmit}
+                    >
+                        <Label htmlFor="message" className="sr-only">
+                            Message
+                        </Label>
+                        {renderInput()}
+
+                        <div className="flex items-center px-3 py-4 gap-2">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setInputType('text')}
+                                        aria-label="Switch to Text Input"
+                                    >
+                                        <FileText className="size-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top">
+                                    Switch to Text Input
+                                </TooltipContent>
+                            </Tooltip>
+
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setInputType('file')}
+                                        aria-label="Attach File"
+                                    >
+                                        <Paperclip className="size-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top">
+                                    Attach File
+                                </TooltipContent>
+                            </Tooltip>
+
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setInputType('link')}
+                                        aria-label="Switch to Link Input"
+                                    >
+                                        <Link className="size-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top">
+                                    Switch to Link Input
+                                </TooltipContent>
+                            </Tooltip>
+
+                            <div className="flex items-center gap-2 ml-4">
+                                <Label
+                                    htmlFor="num-questions"
+                                    className="text-sm"
                                 >
-                                    <FileText className="size-4" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top">
-                                Switch to Text Input
-                            </TooltipContent>
-                        </Tooltip>
-
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setInputType('file')}
-                                    aria-label="Attach File"
+                                    Number of Questions:
+                                </Label>
+                                <Input
+                                    type="number"
+                                    id="num-questions"
+                                    value={numberOfQuestions}
+                                    onChange={(e) =>
+                                        setNumberOfQuestions(
+                                            parseInt(e.target.value) || 5,
+                                        )
+                                    }
+                                    min="1"
+                                    max="20"
+                                    className="w-16"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Label htmlFor="difficulty" className="text-sm">
+                                    Difficulty:
+                                </Label>
+                                <Select
+                                    value={difficulty}
+                                    onValueChange={(value) =>
+                                        setDifficulty(
+                                            value as
+                                                | 'Easy'
+                                                | 'Medium'
+                                                | 'Hard'
+                                                | 'God Mode',
+                                        )
+                                    }
                                 >
-                                    <Paperclip className="size-4" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top">
-                                Attach File
-                            </TooltipContent>
-                        </Tooltip>
+                                    <SelectTrigger className="w-32">
+                                        <SelectValue placeholder="Difficulty" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Easy">
+                                            Easy
+                                        </SelectItem>
+                                        <SelectItem value="Medium">
+                                            Medium
+                                        </SelectItem>
+                                        <SelectItem value="Hard">
+                                            Hard
+                                        </SelectItem>
+                                        <SelectItem value="God Mode">
+                                            God Mode
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setInputType('link')}
-                                    aria-label="Switch to Link Input"
-                                >
-                                    <Link className="size-4" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top">
-                                Switch to Link Input
-                            </TooltipContent>
-                        </Tooltip>
-
-                        <div className="flex items-center gap-2 ml-4">
-                            <Label htmlFor="num-questions" className="text-sm">
-                                Number of Questions:
-                            </Label>
-                            <Input
-                                type="number"
-                                id="num-questions"
-                                value={numberOfQuestions}
-                                onChange={(e) =>
-                                    setNumberOfQuestions(Number(e.target.value))
-                                }
-                                min="1"
-                                max="20"
-                                className="w-16"
-                            />
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Label htmlFor="difficulty" className="text-sm">
-                                Difficulty:
-                            </Label>
-                            <Select
-                                value={difficulty}
-                                onValueChange={(value) =>
-                                    setDifficulty(
-                                        value as
-                                            | 'Easy'
-                                            | 'Medium'
-                                            | 'Hard'
-                                            | 'God Mode',
-                                    )
-                                }
+                            <Button
+                                type="submit"
+                                size="sm"
+                                className="ml-auto gap-1.5"
+                                disabled={loading}
                             >
-                                <SelectTrigger className="w-32">
-                                    <SelectValue placeholder="Difficulty" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Easy">Easy</SelectItem>
-                                    <SelectItem value="Medium">
-                                        Medium
-                                    </SelectItem>
-                                    <SelectItem value="Hard">Hard</SelectItem>
-                                    <SelectItem value="God Mode">
-                                        God Mode
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
+                                {loading ? 'Generating' : 'Generate'}
+                                {!loading && (
+                                    <CornerDownLeft className="size-3.5" />
+                                )}
+                            </Button>
                         </div>
+                    </form>
 
-                        <Button
-                            type="submit"
-                            size="sm"
-                            className="ml-auto gap-1.5"
-                        >
-                            {loading ? 'Generating' : 'Generate'}
-                            {!loading && (
-                                <CornerDownLeft className="size-3.5" />
-                            )}
-                        </Button>
-                    </div>
-                </form>
-
-                {error && (
-                    <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-lg">
-                        <strong>Error:</strong> {error}
-                    </div>
-                )}
-
-                {questions.length > 0 && (
-                    <div className="mt-4 p-4  rounded-lg shadow-md">
-                        <h2 className="text-lg font-bold mb-2">
-                            Generated Questions:
-                        </h2>
-                        <ul className="list-disc pl-5">
-                            {questions.map((question) => (
-                                <li key={generateUUIDv4()}>{question}</li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
+                    {error && (
+                        <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-lg">
+                            <strong>Error:</strong> {error}
+                        </div>
+                    )}
+                </div>
             </main>
         </div>
     );

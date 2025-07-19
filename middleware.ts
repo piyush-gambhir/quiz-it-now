@@ -23,15 +23,7 @@ export async function middleware(req: NextRequest) {
     const isPublicRoute = publicRoutes.includes(pathname);
 
     // Retrieve the session to check authentication status
-    let session;
-    try {
-        session = await getServerSession();
-    } catch (error) {
-        // If there's an error with session retrieval, treat as not logged in
-        console.warn('Session retrieval error:', error);
-        session = null;
-    }
-
+    const session = await getServerSession();
     const isLoggedIn = !!session;
 
     // Handle authentication routes (e.g., login, signup)
