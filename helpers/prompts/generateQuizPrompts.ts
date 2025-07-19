@@ -1,9 +1,9 @@
 export const generateQuizFormTextPrompt = (
-  text: string,
-  numberOfQuestions: number,
-  difficulty: string,
+    text: string,
+    numberOfQuestions: number,
+    difficulty: string,
 ): string => {
-  return `
+    return `
       You are an AI assistant specialized in creating educational content. Your task is to generate a single, well-structured JSON object for a quiz based on the provided input text.
   
       **Instructions:**
@@ -82,11 +82,11 @@ export const generateQuizFormTextPrompt = (
 };
 
 export const generateQuizFormHTMLPrompt = (
-  html: string,
-  numberOfQuestions: number,
-  difficulty: string,
+    html: string,
+    numberOfQuestions: number,
+    difficulty: string,
 ): string => {
-  return `
+    return `
       You are an AI assistant specialized in creating educational content. Your task is to generate a single, well-structured JSON object for a quiz based on the provided input HTML.
   
       **Instructions:**
@@ -175,11 +175,11 @@ export const generateQuizFormHTMLPrompt = (
 };
 
 export const generateQuizFromTranscriptPrompt = (
-  transcript: string,
-  numberOfQuestions: number,
-  difficulty: string,
+    transcript: string,
+    numberOfQuestions: number,
+    difficulty: string,
 ): string => {
-  return `
+    return `
         You are an AI assistant specialized in creating educational content. Your task is to generate a well-structured JSON object for a quiz based on the provided transcript.
   
         **Instructions:**

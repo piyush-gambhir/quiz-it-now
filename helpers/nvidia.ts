@@ -2,21 +2,21 @@ import OpenAI from 'openai';
 
 // Define the OpenAI instance with API key and base URL
 const openai = new OpenAI({
-  apiKey: process.env.NVIDIA_API_KEY as string,
-  baseURL: 'https://integrate.api.nvidia.com/v1',
+    apiKey: process.env.NVIDIA_API_KEY as string,
+    baseURL: 'https://integrate.api.nvidia.com/v1',
 });
 
 // Define the message type for the chat completion
 export type ChatMessage = {
-  role: 'user' | 'assistant' | 'system';
-  content: string;
+    role: 'user' | 'assistant' | 'system';
+    content: string;
 };
 
 // Define the options type for the helper function
 export type CompletionOptions = {
-  temperature?: number;
-  top_p?: number;
-  max_tokens?: number;
+    temperature?: number;
+    top_p?: number;
+    max_tokens?: number;
 };
 
 /**
@@ -27,20 +27,20 @@ export type CompletionOptions = {
  * @returns An async generator yielding chunks of response text.
  */
 export async function* getChatCompletion(
-  model: string,
-  messages: ChatMessage[],
-  options: CompletionOptions = {},
+    model: string,
+    messages: ChatMessage[],
+    options: CompletionOptions = {},
 ): AsyncGenerator<string> {
-  const completion = await openai.chat.completions.create({
-    model,
-    messages,
-    stream: true,
-    temperature: options.temperature ?? 0.7,
-    top_p: options.top_p ?? 1,
-    max_tokens: options.max_tokens ?? 4096,
-  });
+    const completion = await openai.chat.completions.create({
+        model,
+        messages,
+        stream: true,
+        temperature: options.temperature ?? 0.7,
+        top_p: options.top_p ?? 1,
+        max_tokens: options.max_tokens ?? 4096,
+    });
 
-  for await (const chunk of completion) {
-    yield chunk.choices[0]?.delta?.content || '';
-  }
+    for await (const chunk of completion) {
+        yield chunk.choices[0]?.delta?.content || '';
+    }
 }

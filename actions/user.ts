@@ -67,45 +67,45 @@
 // }
 
 export async function getUser(email?: string, userId?: string) {
-  if (!email && !userId) {
-    throw new Error('Either email or userId must be provided');
-  }
+    if (!email && !userId) {
+        throw new Error('Either email or userId must be provided');
+    }
 
-  const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL!}/api/users`);
-  if (email) {
-    url.searchParams.append('email', email);
-  }
-  if (userId) {
-    url.searchParams.append('userId', userId);
-  }
+    const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL!}/api/users`);
+    if (email) {
+        url.searchParams.append('email', email);
+    }
+    if (userId) {
+        url.searchParams.append('userId', userId);
+    }
 
-  const response = await fetch(url, {
-    method: 'GET',
-  });
+    const response = await fetch(url, {
+        method: 'GET',
+    });
 
-  const user = await response.json().then((data) => data?.data?.user);
+    const user = await response.json().then((data) => data?.data?.user);
 
-  return user;
+    return user;
 }
 
 export async function createUser(
-  email: string,
-  name?: string,
-  avatar?: string,
+    email: string,
+    name?: string,
+    avatar?: string,
 ) {
-  const user = await getUser(email);
-  if (user) {
-    return user;
-  }
+    const user = await getUser(email);
+    if (user) {
+        return user;
+    }
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL!}/api/users`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ email, name, avatar }),
-    },
-  );
+    const response = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL!}/api/users`,
+        {
+            method: 'POST',
+            body: JSON.stringify({ email, name, avatar }),
+        },
+    );
 
-  const newUser = await response.json().then((data) => data?.data?.user);
-  return newUser;
+    const newUser = await response.json().then((data) => data?.data?.user);
+    return newUser;
 }

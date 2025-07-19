@@ -12,25 +12,25 @@ import Header from '@/components/Header';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Quiz Master',
-  description:
-    'Quiz Masteris a platform that allows you to create and customize quizzes effortlessly using AI.',
+    title: 'Quiz Master',
+    description:
+        'Quiz Masteris a platform that allows you to create and customize quizzes effortlessly using AI.',
 };
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body className={cn(Inter.className)}>
-        <Providers>
-          <Header />
-          {children}
-          <Footer />
-        </Providers>
-      </body>
-    </html>
-  );
+    return (
+        <html lang="en">
+            <body className={cn(Inter.className)}>
+                <Providers>
+                    <Header />
+                    {children}
+                    <Footer />
+                </Providers>
+            </body>
+        </html>
+    );
 }
