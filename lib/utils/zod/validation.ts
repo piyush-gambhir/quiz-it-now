@@ -114,7 +114,7 @@ export function validateEmail(email: string): {
     return { valid: true, message: '' };
   } catch (e) {
     if (e instanceof z.ZodError) {
-      return { valid: false, message: e.errors[0].message };
+      return { valid: false, message: e.issues[0].message };
     }
     return { valid: false, message: 'An unknown error occurred' };
   }
@@ -127,7 +127,7 @@ export function validateURL(url: string): { valid: boolean; message: string } {
     return { valid: true, message: '' };
   } catch (e) {
     if (e instanceof z.ZodError) {
-      return { valid: false, message: e.errors[0].message };
+      return { valid: false, message: e.issues[0].message };
     }
     return { valid: false, message: 'An unknown error occurred' };
   }
@@ -143,7 +143,7 @@ export function validateString(str: string): {
     return { valid: true, message: '' };
   } catch (e) {
     if (e instanceof z.ZodError) {
-      return { valid: false, message: e.errors[0].message };
+      return { valid: false, message: e.issues[0].message };
     }
     return { valid: false, message: 'An unknown error occurred' };
   }
@@ -159,7 +159,7 @@ export function validateNumber(num: number): {
     return { valid: true, message: '' };
   } catch (e) {
     if (e instanceof z.ZodError) {
-      return { valid: false, message: e.errors[0].message };
+      return { valid: false, message: e.issues[0].message };
     }
     return { valid: false, message: 'An unknown error occurred' };
   }
@@ -175,7 +175,7 @@ export function validateInteger(num: number): {
     return { valid: true, message: '' };
   } catch (e) {
     if (e instanceof z.ZodError) {
-      return { valid: false, message: e.errors[0].message };
+      return { valid: false, message: e.issues[0].message };
     }
     return { valid: false, message: 'An unknown error occurred' };
   }
@@ -188,7 +188,7 @@ export function validateDate(date: Date): { valid: boolean; message: string } {
     return { valid: true, message: '' };
   } catch (e) {
     if (e instanceof z.ZodError) {
-      return { valid: false, message: e.errors[0].message };
+      return { valid: false, message: e.issues[0].message };
     }
     return { valid: false, message: 'An unknown error occurred' };
   }
@@ -204,7 +204,7 @@ export function validateStringArray(arr: string[]): {
     return { valid: true, message: '' };
   } catch (e) {
     if (e instanceof z.ZodError) {
-      return { valid: false, message: e.errors[0].message };
+      return { valid: false, message: e.issues[0].message };
     }
     return { valid: false, message: 'An unknown error occurred' };
   }
@@ -220,7 +220,7 @@ export function validatePassword(password: string): {
     return { valid: true, message: '' };
   } catch (e) {
     if (e instanceof z.ZodError) {
-      return { valid: false, message: e.errors[0].message };
+      return { valid: false, message: e.issues[0].message };
     }
     return { valid: false, message: 'An unknown error occurred' };
   }
@@ -236,7 +236,7 @@ export function validateSignUpCredentials(credentials: {
     return { valid: true, message: '' };
   } catch (e) {
     if (e instanceof z.ZodError) {
-      return { valid: false, message: e.errors[0].message };
+      return { valid: false, message: e.issues[0].message };
     }
     return { valid: false, message: 'An unknown error occurred' };
   }
@@ -257,7 +257,7 @@ export function validateImageFile({
     return { valid: true, message: '' };
   } catch (e) {
     if (e instanceof z.ZodError) {
-      return { valid: false, message: e.errors[0].message };
+      return { valid: false, message: e.issues[0].message };
     }
     return { valid: false, message: 'An unknown error occurred' };
   }
@@ -278,7 +278,7 @@ export function validateVideoFile({
     return { valid: true, message: '' };
   } catch (e) {
     if (e instanceof z.ZodError) {
-      return { valid: false, message: e.errors[0].message };
+      return { valid: false, message: e.issues[0].message };
     }
     return { valid: false, message: 'An unknown error occurred' };
   }
@@ -299,7 +299,7 @@ export function validatePDFFile({
     return { valid: true, message: '' };
   } catch (e) {
     if (e instanceof z.ZodError) {
-      return { valid: false, message: e.errors[0].message };
+      return { valid: false, message: e.issues[0].message };
     }
     return { valid: false, message: 'An unknown error occurred' };
   }
@@ -320,7 +320,7 @@ export function validateAudioFile({
     return { valid: true, message: '' };
   } catch (e) {
     if (e instanceof z.ZodError) {
-      return { valid: false, message: e.errors[0].message };
+      return { valid: false, message: e.issues[0].message };
     }
     return { valid: false, message: 'An unknown error occurred' };
   }

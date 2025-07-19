@@ -8,23 +8,29 @@ import React from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 export async function Providers({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  const authSession = await auth();
+    let authSession;
+    try {
+        authSession = await auth();
+    } catch (error) {
+        console.warn('Auth session error:', error);
+        authSession = null;
+    }
 
-  // Only render NextAuthSessionProvider if session is not null
-  return (
-    <NextAuthSessionProvider session={authSession as Session}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="light"
-        enableSystem
-        disableTransitionOnChange
-      >
-        <TooltipProvider>{children}</TooltipProvider>
-      </ThemeProvider>
-    </NextAuthSessionProvider>
-  );
+    // Only render NextAuthSessionProvider if session is not null
+    return (
+        <NextAuthSessionProvider session={authSession as Session}>
+            <ThemeProvider
+                attribute="class"
+                defaultTheme="light"
+                enableSystem
+                disableTransitionOnChange
+            >
+                <TooltipProvider>{children}</TooltipProvider>
+            </ThemeProvider>
+        </NextAuthSessionProvider>
+    );
 }
