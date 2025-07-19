@@ -8,27 +8,39 @@ import {
 
 import { NextRequest, NextResponse } from 'next/server';
 
-// Validate environment variables
-const { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME } =
-    env;
+// Lazy initialization of S3 client
+let s3Client: S3Client | null = null;
 
-if (
-    !AWS_REGION ||
-    !AWS_ACCESS_KEY_ID ||
-    !AWS_SECRET_ACCESS_KEY ||
-    !S3_BUCKET_NAME
-) {
-    throw new Error('Missing required AWS environment variables.');
+function getS3Client(): S3Client {
+    if (!s3Client) {
+        // Validate environment variables
+        const {
+            AWS_REGION,
+            AWS_ACCESS_KEY_ID,
+            AWS_SECRET_ACCESS_KEY,
+            S3_BUCKET_NAME,
+        } = env;
+
+        if (
+            !AWS_REGION ||
+            !AWS_ACCESS_KEY_ID ||
+            !AWS_SECRET_ACCESS_KEY ||
+            !S3_BUCKET_NAME
+        ) {
+            throw new Error('Missing required AWS environment variables.');
+        }
+
+        // Initialize S3 client
+        s3Client = new S3Client({
+            region: AWS_REGION,
+            credentials: {
+                accessKeyId: AWS_ACCESS_KEY_ID,
+                secretAccessKey: AWS_SECRET_ACCESS_KEY,
+            },
+        });
+    }
+    return s3Client;
 }
-
-// Initialize S3 client
-const s3Client = new S3Client({
-    region: AWS_REGION,
-    credentials: {
-        accessKeyId: AWS_ACCESS_KEY_ID,
-        secretAccessKey: AWS_SECRET_ACCESS_KEY,
-    },
-});
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
@@ -56,6 +68,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             );
         }
 
+        const { S3_BUCKET_NAME } = env;
+        if (!S3_BUCKET_NAME) {
+            throw new Error('S3_BUCKET_NAME environment variable is required');
+        }
+
         const params: PresignedPostOptions = {
             Bucket: S3_BUCKET_NAME,
             Key: key,
@@ -72,7 +89,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         console.log('Generating presigned POST with params:', params);
 
         const presignedPost: PresignedPost = await createPresignedPost(
-            s3Client,
+            getS3Client(),
             params,
         );
 

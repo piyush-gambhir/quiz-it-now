@@ -8,21 +8,23 @@ export const env = createEnv({
    Specify your server-side environment variables schema here. This way you can ensure the app isn't built with invalid env vars.
    */
     server: {
-        ENVIRONMENT: z.enum(['development', 'staging', 'production']),
-        MONGODB_URI: z.string(),
-        MONGODB_DB: z.string(),
-        AUTH_SECRET: z.string(),
-        GITHUB_CLIENT_ID: z.string(),
-        GITHUB_CLIENT_SECRET: z.string(),
-        GOOGLE_CLIENT_ID: z.string(),
-        GOOGLE_CLIENT_SECRET: z.string(),
-        HUGGINGFACE_API_KEY: z.string(),
-        AWS_REGION: z.string(),
-        AWS_ACCESS_KEY_ID: z.string(),
-        AWS_SECRET_ACCESS_KEY: z.string(),
-        S3_BUCKET_NAME: z.string(),
-        DATA_SCRAPING_BACKEND_URL: z.string(),
-        NVIDIA_API_KEY: z.string(),
+        ENVIRONMENT: z
+            .enum(['development', 'staging', 'production'])
+            .optional(),
+        MONGODB_URI: z.string().optional(),
+        MONGODB_DB: z.string().optional(),
+        AUTH_SECRET: z.string().optional(),
+        GITHUB_CLIENT_ID: z.string().optional(),
+        GITHUB_CLIENT_SECRET: z.string().optional(),
+        GOOGLE_CLIENT_ID: z.string().optional(),
+        GOOGLE_CLIENT_SECRET: z.string().optional(),
+        HUGGINGFACE_API_KEY: z.string().optional(),
+        AWS_REGION: z.string().optional(),
+        AWS_ACCESS_KEY_ID: z.string().optional(),
+        AWS_SECRET_ACCESS_KEY: z.string().optional(),
+        S3_BUCKET_NAME: z.string().optional(),
+        DATA_SCRAPING_BACKEND_URL: z.string().optional(),
+        NVIDIA_API_KEY: z.string().optional(),
     },
 
     /**

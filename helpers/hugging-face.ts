@@ -3,6 +3,7 @@ import { HfInference } from '@huggingface/inference';
 interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
+    [key: string]: any; // Add index signature to satisfy the type requirement
 }
 
 interface CompletionOptions {

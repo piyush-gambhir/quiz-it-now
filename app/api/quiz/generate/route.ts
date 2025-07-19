@@ -1,5 +1,5 @@
 import { db } from '@/lib/mongo/client';
-import { generateUUIDv4 } from '@/lib/utils/generate-uuid';
+import { generateUUIDv4 } from '@/utils/generate-uuid';
 
 export async function POST(request: Request) {
     try {
