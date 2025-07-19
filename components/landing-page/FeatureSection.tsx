@@ -50,9 +50,6 @@ const Feature17 = () => {
     return (
         <section className="py-32">
             <div className="container mx-auto max-w-screen-xl">
-                <p className="mb-4 text-xs text-muted-foreground md:pl-5">
-                    Features
-                </p>
                 <h2 className="text-3xl font-medium md:pl-5 lg:text-4xl">
                     Our Core Features
                 </h2>
@@ -69,7 +66,7 @@ const Feature17 = () => {
                                 <h3 className="font-medium md:mb-2 md:text-xl">
                                     {feature.title}
                                 </h3>
-                                <p className="text-sm text-muted-foreground md:text-base">
+                                <p className="text-muted-foreground">
                                     {feature.description}
                                 </p>
                             </div>

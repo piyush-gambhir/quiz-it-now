@@ -28,11 +28,14 @@ import {
 } from '@/components/ui/table';
 
 interface Quiz {
+    _id: string;
     quizId: string;
-    userId: string;
-    input: string;
-    model: string;
-    quiz: any;
+    title: string;
+    description: string;
+    difficulty: string;
+    topic: string;
+    tags: string[];
+    numberOfQuestions: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -51,8 +54,14 @@ export default function QuizzesPage({
         setQueryParams({ page: currentPage.toString(), search: searchTerm });
     }, [currentPage, searchTerm, setQueryParams]);
 
-    const filteredQuizzes = quizzes.filter((quiz) =>
-        quiz.quiz.title.toLowerCase().includes(searchTerm.toLowerCase()),
+    const filteredQuizzes = quizzes.filter(
+        (quiz) =>
+            quiz.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            quiz.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            quiz.topic.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            quiz.tags.some((tag) =>
+                tag.toLowerCase().includes(searchTerm.toLowerCase()),
+            ),
     );
 
     const totalPages = Math.ceil(filteredQuizzes.length / itemsPerPage);
@@ -69,32 +78,17 @@ export default function QuizzesPage({
         setCurrentPage(1);
     };
 
-    const handleDelete = (id: string) => {
-        console.log(`Deleting quiz ${id}`);
-        // Implement delete logic here
+    const handleDeleteQuiz = async (quizId: string) => {
+        // TODO: Implement delete functionality
+        console.log('Delete quiz:', quizId);
     };
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8 px-4">
-                <Card className="shadow-none">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Total Quizzes
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {quizzes.length}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            Across all categories
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <Card className="shadow-none border-none">
+            <Card>
+                <CardHeader>
+                    <CardTitle>My Quizzes</CardTitle>
+                </CardHeader>
                 <CardContent>
                     <div className="mb-4 flex justify-between items-center">
                         <Input
@@ -104,144 +98,153 @@ export default function QuizzesPage({
                             onChange={handleSearch}
                             className="max-w-sm"
                         />
-                        <Link href="/quiz/generate" prefetch={true}>
-                            <Button>Create New Quiz</Button>
-                        </Link>
                     </div>
                     <div className="rounded-md border">
                         <Table>
                             <TableHeader>
-                                <TableRow className="grid grid-cols-8">
-                                    <TableHead className="col-span-3">
-                                        Title
-                                    </TableHead>
-                                    <TableHead className="col-span-2">
-                                        Category
-                                    </TableHead>
-                                    <TableHead className="col-span-1">
-                                        Created At
-                                    </TableHead>
-                                    <TableHead className="col-span-1">
-                                        Questions
-                                    </TableHead>
-                                    <TableHead className="col-span-1">
-                                        Actions
-                                    </TableHead>
+                                <TableRow>
+                                    <TableHead>Title</TableHead>
+                                    <TableHead>Topic</TableHead>
+                                    <TableHead>Difficulty</TableHead>
+                                    <TableHead>Questions</TableHead>
+                                    <TableHead>Created</TableHead>
+                                    <TableHead>Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {currentQuizzes.map((quiz) => (
-                                    <TableRow
-                                        key={quiz.quizId}
-                                        className="grid grid-cols-8"
-                                    >
-                                        <TableCell className="font-medium col-span-3">
-                                            {quiz.quiz.title}
+                                    <TableRow key={quiz._id}>
+                                        <TableCell>
+                                            <div>
+                                                <div className="font-medium">
+                                                    {quiz.title}
+                                                </div>
+                                                <div className="text-sm text-muted-foreground">
+                                                    {quiz.description}
+                                                </div>
+                                            </div>
                                         </TableCell>
-                                        <TableCell className="flex flex-wrap gap-2 col-span-2">
-                                            {quiz.quiz.tags.map(
-                                                (tag: string) => (
-                                                    <Badge
-                                                        className="h-min"
-                                                        variant="secondary"
-                                                        key={tag}
-                                                    >
-                                                        {tag}
-                                                    </Badge>
-                                                ),
-                                            )}
+                                        <TableCell>
+                                            <Badge variant="secondary">
+                                                {quiz.topic}
+                                            </Badge>
                                         </TableCell>
-                                        <TableCell className="col-span-1">
+                                        <TableCell>
+                                            <Badge
+                                                variant={
+                                                    quiz.difficulty === 'Easy'
+                                                        ? 'default'
+                                                        : quiz.difficulty ===
+                                                            'Medium'
+                                                          ? 'secondary'
+                                                          : quiz.difficulty ===
+                                                              'Hard'
+                                                            ? 'destructive'
+                                                            : 'outline'
+                                                }
+                                            >
+                                                {quiz.difficulty}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            {quiz.numberOfQuestions}
+                                        </TableCell>
+                                        <TableCell>
                                             {new Date(
                                                 quiz.createdAt,
                                             ).toLocaleDateString()}
                                         </TableCell>
-                                        <TableCell className="col-span-1">
-                                            {quiz.quiz.numberOfQuestions}
-                                        </TableCell>
-                                        <TableCell className="col-span-1">
-                                            <Link
-                                                href={`/quiz/view/${quiz.quizId}`}
-                                                prefetch={true}
-                                            >
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <Link
+                                                    href={`/quiz/view/${quiz.quizId}`}
+                                                >
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                </Link>
+                                                <Link
+                                                    href={`/quiz/${quiz.quizId}`}
+                                                >
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                    >
+                                                        <Play className="h-4 w-4" />
+                                                    </Button>
+                                                </Link>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
+                                                    onClick={() =>
+                                                        handleDeleteQuiz(
+                                                            quiz.quizId,
+                                                        )
+                                                    }
                                                 >
-                                                    <Eye className="h-4 w-4" />
+                                                    <Trash2 className="h-4 w-4" />
                                                 </Button>
-                                            </Link>
-                                            <Link
-                                                href={`/quiz/${quiz.quizId}`}
-                                                prefetch={true}
-                                            >
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                >
-                                                    <Play className="h-4 w-4" />
-                                                </Button>
-                                            </Link>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() =>
-                                                    handleDelete(quiz.quizId)
-                                                }
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
                         </Table>
                     </div>
-                    <div className="mt-4 flex items-center justify-end space-x-2 py-4">
-                        <Pagination>
-                            <PaginationContent>
-                                <PaginationItem>
-                                    <PaginationPrevious
-                                        onClick={() =>
-                                            handlePageChange(currentPage - 1)
-                                        }
-                                        className={
-                                            currentPage === 1
-                                                ? 'pointer-events-none opacity-50'
-                                                : ''
-                                        }
-                                    />
-                                </PaginationItem>
-                                {Array.from(
-                                    { length: totalPages },
-                                    (_, i) => i + 1,
-                                ).map((page) => (
-                                    <PaginationItem key={page}>
-                                        <PaginationLink
+                    {totalPages > 1 && (
+                        <div className="mt-4 flex items-center justify-end space-x-2 py-4">
+                            <Pagination>
+                                <PaginationContent>
+                                    <PaginationItem>
+                                        <PaginationPrevious
                                             onClick={() =>
-                                                handlePageChange(page)
+                                                handlePageChange(
+                                                    currentPage - 1,
+                                                )
                                             }
-                                            isActive={currentPage === page}
-                                        >
-                                            {page}
-                                        </PaginationLink>
+                                            className={
+                                                currentPage === 1
+                                                    ? 'pointer-events-none opacity-50'
+                                                    : ''
+                                            }
+                                        />
                                     </PaginationItem>
-                                ))}
-                                <PaginationItem>
-                                    <PaginationNext
-                                        onClick={() =>
-                                            handlePageChange(currentPage + 1)
-                                        }
-                                        className={
-                                            currentPage === totalPages
-                                                ? 'pointer-events-none opacity-50'
-                                                : ''
-                                        }
-                                    />
-                                </PaginationItem>
-                            </PaginationContent>
-                        </Pagination>
-                    </div>
+                                    {Array.from(
+                                        { length: totalPages },
+                                        (_, i) => i + 1,
+                                    ).map((page) => (
+                                        <PaginationItem key={page}>
+                                            <PaginationLink
+                                                onClick={() =>
+                                                    handlePageChange(page)
+                                                }
+                                                isActive={currentPage === page}
+                                            >
+                                                {page}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    ))}
+                                    <PaginationItem>
+                                        <PaginationNext
+                                            onClick={() =>
+                                                handlePageChange(
+                                                    currentPage + 1,
+                                                )
+                                            }
+                                            className={
+                                                currentPage === totalPages
+                                                    ? 'pointer-events-none opacity-50'
+                                                    : ''
+                                            }
+                                        />
+                                    </PaginationItem>
+                                </PaginationContent>
+                            </Pagination>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>

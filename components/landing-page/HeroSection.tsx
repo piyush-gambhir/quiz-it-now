@@ -22,7 +22,7 @@ const HeroSection = () => {
                 <h1 className="mb-6 text-4xl font-bold leading-none tracking-tighter md:text-[7vw] lg:text-8xl">
                     Transform Learning with AI-Powered Quizzes.
                 </h1>
-                <p className="max-w-2xl text-muted-foreground md:text-[2vw] lg:text-xl">
+                <p className="mb-6 text-lg text-muted-foreground md:text-xl">
                     Create and customize quizzes effortlessly using our
                     AI-powered platform. Automate question generation, track
                     progress, and enhance engagement.

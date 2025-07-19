@@ -5,7 +5,7 @@ import { Cross2Icon } from '@radix-ui/react-icons';
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
 
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 
 const Sheet = SheetPrimitive.Root;
 
@@ -116,11 +116,7 @@ const SheetDescription = React.forwardRef<
     React.ElementRef<typeof SheetPrimitive.Description>,
     React.ComponentPropsWithoutRef<typeof SheetPrimitive.Description>
 >(({ className, ...props }, ref) => (
-    <SheetPrimitive.Description
-        ref={ref}
-        className={cn('text-sm text-muted-foreground', className)}
-        {...props}
-    />
+    <SheetPrimitive.Description ref={ref} {...props} />
 ));
 SheetDescription.displayName = SheetPrimitive.Description.displayName;
 

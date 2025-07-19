@@ -13,7 +13,7 @@ import {
 } from 'react-hook-form';
 
 import { Label } from '@/components/ui/label';
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 
 const Form = FormProvider;
 
@@ -132,14 +132,7 @@ const FormDescription = React.forwardRef<
 >(({ className, ...props }, ref) => {
     const { formDescriptionId } = useFormField();
 
-    return (
-        <p
-            ref={ref}
-            id={formDescriptionId}
-            className={cn('text-[0.8rem] text-muted-foreground', className)}
-            {...props}
-        />
-    );
+    return <p ref={ref} id={formDescriptionId} {...props} />;
 });
 FormDescription.displayName = 'FormDescription';
 

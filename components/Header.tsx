@@ -1,21 +1,12 @@
 'use client';
 
-import {
-    Book,
-    FileText,
-    LogOut,
-    Menu,
-    Sunset,
-    Trees,
-    User,
-    Zap,
-} from 'lucide-react';
+import { Book, LogOut, Menu, Sunset, Trees, User, Zap } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 
 import { useAuthSession } from '@/hooks/auth/useSession';
 
@@ -118,24 +109,17 @@ const Header = () => {
     useEffect(() => {}, [session]);
 
     return (
-        <header className="sticky top-0 z-50 py-4 px-8 bg-background">
+        <header className="sticky top-0 z-50 py-4 px-8 ">
             <div>
                 <nav className="hidden justify-between lg:flex">
                     <div className="flex items-center gap-6">
                         <Link href="/" className="flex items-center gap-2">
-                            <Image
-                                src="https://www.shadcnblocks.com/images/block/block-1.svg"
-                                className="w-8"
-                                alt="logo"
-                                width={32}
-                                height={32}
-                            />
                             <span className="text-xl font-bold">QuizItNow</span>
                         </Link>
                         <div className="flex items-center">
                             <Link
                                 className={cn(
-                                    'text-muted-foreground',
+                                    '',
                                     navigationMenuTriggerStyle,
                                     buttonVariants({
                                         variant: 'ghost',
@@ -147,7 +131,7 @@ const Header = () => {
                             </Link>
                             <NavigationMenu>
                                 <NavigationMenuList>
-                                    <NavigationMenuItem className="text-muted-foreground">
+                                    <NavigationMenuItem className="">
                                         <NavigationMenuTrigger>
                                             <span>Features</span>
                                         </NavigationMenuTrigger>
@@ -172,7 +156,7 @@ const Header = () => {
                                                                                 item.title
                                                                             }
                                                                         </div>
-                                                                        <p className="text-sm leading-snug text-muted-foreground">
+                                                                        <p className="text-sm leading-snug ">
                                                                             {
                                                                                 item.description
                                                                             }
@@ -186,7 +170,7 @@ const Header = () => {
                                             </ul>
                                         </NavigationMenuContent>
                                     </NavigationMenuItem>
-                                    <NavigationMenuItem className="text-muted-foreground">
+                                    <NavigationMenuItem className="">
                                         <NavigationMenuTrigger>
                                             Resources
                                         </NavigationMenuTrigger>
@@ -211,7 +195,7 @@ const Header = () => {
                                                                                 item.title
                                                                             }
                                                                         </div>
-                                                                        <p className="text-sm leading-snug text-muted-foreground">
+                                                                        <p className="text-sm leading-snug ">
                                                                             {
                                                                                 item.description
                                                                             }
@@ -230,7 +214,7 @@ const Header = () => {
 
                             <Link
                                 className={cn(
-                                    'text-muted-foreground',
+                                    '',
                                     navigationMenuTriggerStyle,
                                     buttonVariants({
                                         variant: 'ghost',
@@ -242,7 +226,7 @@ const Header = () => {
                             </Link>
                             <Link
                                 className={cn(
-                                    'text-muted-foreground',
+                                    '',
                                     navigationMenuTriggerStyle,
                                     buttonVariants({
                                         variant: 'ghost',
@@ -252,20 +236,6 @@ const Header = () => {
                             >
                                 Blog
                             </Link>
-                            {session?.status === 'authenticated' && (
-                                <Link
-                                    className={cn(
-                                        'text-muted-foreground',
-                                        navigationMenuTriggerStyle,
-                                        buttonVariants({
-                                            variant: 'ghost',
-                                        }),
-                                    )}
-                                    href="/quiz"
-                                >
-                                    My Quizzes
-                                </Link>
-                            )}
                         </div>
                     </div>
                     {session?.status === 'unauthenticated' ? (
@@ -301,12 +271,7 @@ const Header = () => {
                                         Profile
                                     </DropdownMenuItem>
                                 </Link>
-                                <Link href="/my-quizzes">
-                                    <DropdownMenuItem className="cursor-pointer">
-                                        <FileText className="mr-2 h-4 w-4" />
-                                        My Quizzes
-                                    </DropdownMenuItem>
-                                </Link>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                     className="cursor-pointer"
@@ -347,8 +312,6 @@ const Header = () => {
                                                 src="https://www.shadcnblocks.com/images/block/block-1.svg"
                                                 className="w-8"
                                                 alt="logo"
-                                                width={32}
-                                                height={32}
                                             />
                                             <span className="text-xl font-bold">
                                                 Quiz Master
@@ -387,7 +350,7 @@ const Header = () => {
                                                                 <div className="text-sm font-semibold">
                                                                     {item.title}
                                                                 </div>
-                                                                <p className="text-sm leading-snug text-muted-foreground">
+                                                                <p className="text-sm leading-snug ">
                                                                     {
                                                                         item.description
                                                                     }
@@ -420,7 +383,7 @@ const Header = () => {
                                                                 <div className="text-sm font-semibold">
                                                                     {item.title}
                                                                 </div>
-                                                                <p className="text-sm leading-snug text-muted-foreground">
+                                                                <p className="text-sm leading-snug ">
                                                                     {
                                                                         item.description
                                                                     }
@@ -444,14 +407,6 @@ const Header = () => {
                                     >
                                         Blog
                                     </Link>
-                                    {session?.status === 'authenticated' && (
-                                        <Link
-                                            href="/my-quizzes"
-                                            className="font-semibold"
-                                        >
-                                            My Quizzes
-                                        </Link>
-                                    )}
                                 </div>
                                 {session?.status === 'authenticated' ? (
                                     <div className="border-t pt-4">
@@ -461,12 +416,6 @@ const Header = () => {
                                                     Profile
                                                 </Button>
                                             </Link>
-                                            <Button
-                                                variant={'outline'}
-                                                onClick={handleLogout}
-                                            >
-                                                Log out
-                                            </Button>
                                         </div>
                                     </div>
                                 ) : (

@@ -2,8 +2,6 @@ import NextAuth from 'next-auth';
 import Github from 'next-auth/providers/github';
 import Google from 'next-auth/providers/google';
 
-import { createUser, getUser } from '@/actions/user';
-
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
         Google({
@@ -20,20 +18,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         signOut: '/logout',
     },
     secret: process.env.AUTH_SECRET,
+    session: {
+        strategy: 'jwt',
+    },
     callbacks: {
-        async session({ session, token }) {
-            let user = await getUser(token.email!);
-            if (!user) {
-                user = await createUser(
-                    token.email!,
-                    session.user?.name!,
-                    session.user?.image!,
-                );
+        async jwt({ token, user, account }) {
+            if (account && user) {
+                // Initial sign in - store user info in token
+                token.userId = user.id || user.email;
+                token.name = user.name;
+                token.email = user.email;
+                token.image = user.image;
             }
-            session.user.id = user.userId;
-
+            return token;
+        },
+        async session({ session, token }) {
+            if (token.userId) {
+                session.user.id = token.userId as string;
+            }
             return session;
         },
     },
     debug: false,
+    experimental: {
+        enableWebAuthn: false,
+    },
+    trustHost: true,
 });

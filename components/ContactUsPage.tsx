@@ -11,7 +11,7 @@ const ContactUsPage = () => {
                     <h1 className="mb-2 text-5xl font-semibold lg:mb-1 lg:text-6xl">
                         Contact Us
                     </h1>
-                    <p className="text-muted-foreground">
+                    <p className="text-lg text-muted-foreground">
                         We are available for questions, feedback, or
                         collaboration opportunities. Let us know how we can
                         help!

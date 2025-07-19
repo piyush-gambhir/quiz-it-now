@@ -25,7 +25,7 @@ export default function LogoutPage() {
         return () => clearTimeout(timer);
     }, [router]);
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-muted-foreground">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 ">
             <div className="text-center">
                 <Loader2
                     className="mx-auto mb-8 h-16 w-16 animate-spin text-primary"

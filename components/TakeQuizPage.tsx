@@ -14,7 +14,7 @@ import {
     Target,
     XCircle,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import {
     Accordion,
@@ -86,33 +86,40 @@ export default function InteractiveQuizPage({
 
     const numberOfQuestions = quizData?.quiz?.questions?.length || 0;
 
-    useEffect(() => {
-        if (quizStarted && !showResults && timer > 0) {
-            const interval = setInterval(() => {
-                setTimer((prevTimer) => prevTimer - 1);
-            }, 1000);
-            return () => clearInterval(interval);
-        } else if (timer === 0) {
-            handleNextQuestion();
-        }
-    }, [timer, showResults, quizStarted]);
-
-    useEffect(() => {
-        if (autoProgressTimer) {
-            return () => clearTimeout(autoProgressTimer);
-        }
-    }, [autoProgressTimer]);
-
     const handleStartQuiz = () => {
         setQuizStarted(true);
+        setTimer(60);
     };
 
     const handleAnswerChange = (questionId: string, answer: string) => {
-        setUserAnswers((prev) => ({ ...prev, [questionId]: answer }));
+        setUserAnswers((prev) => ({
+            ...prev,
+            [questionId]: answer,
+        }));
         setIsAnswered(true);
+    };
+
+    const handleNextQuestion = () => {
+        if (currentQuestionIndex < numberOfQuestions - 1) {
+            setCurrentQuestionIndex(currentQuestionIndex + 1);
+            setIsAnswered(false);
+            setShowExplanation(false);
+            setTimer(60);
+        } else {
+            setShowResults(true);
+        }
+        if (autoProgressTimer) {
+            clearTimeout(autoProgressTimer);
+        }
+    };
+
+    const handleAnswerSubmit = () => {
+        const currentQuestion =
+            quizData?.quiz?.questions?.[currentQuestionIndex];
+        if (!currentQuestion) return;
+
         const isCorrect =
-            answer ===
-            quizData?.quiz?.questions?.[currentQuestionIndex]?.answer;
+            userAnswers[currentQuestion.id] === currentQuestion.answer;
 
         if (isCorrect) {
             setStreak((prevStreak) => {
@@ -132,20 +139,6 @@ export default function InteractiveQuizPage({
             setStreak(0);
             setShowExplanation(true);
             setAutoProgressTimer(setTimeout(() => handleNextQuestion(), 5000)); // Move to next question after 5 seconds if incorrect
-        }
-    };
-
-    const handleNextQuestion = () => {
-        if (autoProgressTimer) {
-            clearTimeout(autoProgressTimer);
-        }
-        if (currentQuestionIndex < numberOfQuestions - 1) {
-            setCurrentQuestionIndex(currentQuestionIndex + 1);
-            setShowExplanation(false);
-            setIsAnswered(false);
-            setTimer(60);
-        } else {
-            setShowResults(true);
         }
     };
 

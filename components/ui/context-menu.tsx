@@ -8,7 +8,7 @@ import {
 } from '@radix-ui/react-icons';
 import * as React from 'react';
 
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 
 const ContextMenu = ContextMenuPrimitive.Root;
 
@@ -173,15 +173,7 @@ const ContextMenuShortcut = ({
     className,
     ...props
 }: React.HTMLAttributes<HTMLSpanElement>) => {
-    return (
-        <span
-            className={cn(
-                'ml-auto text-xs tracking-widest text-muted-foreground',
-                className,
-            )}
-            {...props}
-        />
-    );
+    return <span {...props} />;
 };
 ContextMenuShortcut.displayName = 'ContextMenuShortcut';
 

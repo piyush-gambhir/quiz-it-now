@@ -66,7 +66,7 @@ const Footer = () => {
                                 <h3 className="mb-4 font-bold text-primary">
                                     {section.title}
                                 </h3>
-                                <ul className="space-y-4 text-muted-foreground">
+                                <ul className="space-y-4 ">
                                     {section.links.map((link, linkIdx) => (
                                         <li
                                             key={linkIdx}
@@ -82,7 +82,7 @@ const Footer = () => {
                             <h3 className="mb-4 mt-8 font-bold text-primary">
                                 Social
                             </h3>
-                            <ul className="flex items-center space-x-6 text-muted-foreground">
+                            <ul className="flex items-center space-x-6 ">
                                 <li className="font-medium hover:text-primary">
                                     <a href="#">
                                         <FaDiscord className="size-6" />
@@ -107,7 +107,7 @@ const Footer = () => {
                         </div>
                     </div>
                     <Separator className="my-14" />
-                    <p className="text-sm text-muted-foreground text-center">
+                    <p className="text-sm  text-center">
                         © 2024 Quiz Master. All rights reserved.
                     </p>
                 </footer>

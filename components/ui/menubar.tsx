@@ -8,7 +8,7 @@ import {
 import * as MenubarPrimitive from '@radix-ui/react-menubar';
 import * as React from 'react';
 
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 
 const MenubarMenu = MenubarPrimitive.Menu;
 
@@ -214,15 +214,7 @@ const MenubarShortcut = ({
     className,
     ...props
 }: React.HTMLAttributes<HTMLSpanElement>) => {
-    return (
-        <span
-            className={cn(
-                'ml-auto text-xs tracking-widest text-muted-foreground',
-                className,
-            )}
-            {...props}
-        />
-    );
+    return <span {...props} />;
 };
 MenubarShortcut.displayname = 'MenubarShortcut';
 

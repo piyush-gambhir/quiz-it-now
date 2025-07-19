@@ -14,7 +14,7 @@ import {
 
 import logger from '@/lib/logger/winston';
 import { db } from '@/lib/mongo/client';
-import { generateUUIDv4 } from '@/lib/utils/generate-uuid';
+import { generateUUIDv4 } from '@/utils/generate-uuid';
 
 const fileInputSchema = z.object({
     name: z.string().min(1),
@@ -209,13 +209,12 @@ export async function POST(req: NextRequest) {
             generateQuizRequestSchema.parse(data); // This will throw an error if validation fails
         } catch (error) {
             if (error instanceof z.ZodError) {
-                logger.warn('Validation error:', error.errors[0].message);
+                logger.warn('Validation error:', error.issues[0].message);
                 return NextResponse.json(
                     {
                         success: false,
-
                         error: {
-                            message: error.errors[0].message,
+                            message: error.issues[0].message,
                             type: 'VALIDATION_ERROR',
                             code: 'VALIDATION_ERROR',
                             params: null,
