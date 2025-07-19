@@ -2,7 +2,6 @@ import { Inter } from '@/fonts/fonts';
 import { Providers } from '@/providers/provider';
 
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import React from 'react';
 
 import { cn } from '@/lib/utils/cn';
@@ -13,26 +12,26 @@ import Header from '@/components/Header';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'QuizItNow',
-  description:
-    'QuizItNow is a platform that allows you to create and customize quizzes effortlessly using AI with any input source.',
+    title: 'QuizItNow',
+    description:
+        'QuizItNow is a platform that allows you to create and customize quizzes effortlessly using AI with any input source.',
 };
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <head></head>
-      <body className={cn(Inter.className)}>
-        <Providers>
-          <Header />
-          {children}
-          <Footer />
-        </Providers>
-      </body>
-    </html>
-  );
+    return (
+        <html lang="en">
+            <head></head>
+            <body className={cn(Inter.className)}>
+                <Providers>
+                    <Header />
+                    {children}
+                    <Footer />
+                </Providers>
+            </body>
+        </html>
+    );
 }

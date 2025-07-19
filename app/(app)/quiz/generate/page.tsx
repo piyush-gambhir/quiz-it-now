@@ -1,7 +1,5 @@
-import React from 'react';
-
 import QuizGeneratorPage from '@/components/QuizGeneratorPage';
 
 export default async function page() {
-  return <QuizGeneratorPage />;
+    return <QuizGeneratorPage />;
 }

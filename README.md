@@ -1,6 +1,6 @@
 # QuizItNow - Instant Quiz Generation from Any Content Source
 
-**Tagline:** *Instant quiz generation from any content source.*
+**Tagline:** _Instant quiz generation from any content source._
 
 ## Overview
 
@@ -38,48 +38,53 @@ QuizItNow can generate quizzes from a variety of input types, making it versatil
 ## Quiz Generation Features
 
 - **Number of Questions**: Users can specify the desired number of questions, based on input size:
-  - Less than 500 words: Up to 5 questions
-  - 500 - 1000 words: Up to 10 questions
-  - 1000 - 1500 words: Up to 15 questions
-  - 1500 - 2000 words: Up to 20 questions
-  - More than 2000 words: Up to 25 questions
+    - Less than 500 words: Up to 5 questions
+    - 500 - 1000 words: Up to 10 questions
+    - 1000 - 1500 words: Up to 15 questions
+    - 1500 - 2000 words: Up to 20 questions
+    - More than 2000 words: Up to 25 questions
 - **Difficulty Levels**: Choose from Easy, Medium, Hard, or God Mode (most challenging).
 - **Adaptability**: Questions are generated based on the key themes, details, and complexities of the input.
 - **Question Variety**: Generates various question types such as:
-  - Multiple-choice
-  - True/False
-  - Fill-in-the-blank
-  - Short-answer questions
+    - Multiple-choice
+    - True/False
+    - Fill-in-the-blank
+    - Short-answer questions
 
 ## Technologies Used
 
 ### Backend
+
 - **FastAPI**: Backend framework for building the API.
 - **Ollama**: Large language model (LLM) processing.
 - **Python**: Core programming language.
 - **OpenAI Whisperer**: For audio and video transcription.
 
 ### Machine Learning
+
 - **LLama LLMs**: Language models used for text processing and quiz generation.
 - **Langchain**: Framework for connecting LLMs with data sources.
 
 ### Frontend
+
 - **Next.js**: React-based web framework.
 - **React**: JavaScript library for building user interfaces.
 - **Tailwind CSS**: Utility-first CSS framework.
 
 ### Database & Authentication
+
 - **MongoDB**: NoSQL database for storing quiz data.
 - **Auth.js**: Authentication system for managing user access.
 
 ### Version Control & Collaboration
+
 - **GitHub**: For version control and collaboration.
 - **Languages**: Python, TypeScript
 
 ## Challenges and Solutions
 
 1. **Multimedia Input Transcription**: Transcribing noisy or low-quality audio was a challenge. We integrated a robust AI transcription service (OpenAI Whisperer) with advanced language models to ensure high accuracy, even in difficult audio conditions.
-  
+
 2. **Difficulty Calibration**: Aligning the generated questions with the desired difficulty level, especially for "God Mode," was a complex task. We iterated on our algorithms using feedback loops to fine-tune the difficulty calibration.
 
 3. **GPU Infrastructure Limitations**: Processing large files and training models required significant computational power, and initially, the lack of adequate GPU infrastructure slowed development. We optimized the code and utilized smaller LLMs to overcome this challenge and speed up processing.
