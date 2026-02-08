@@ -1,12 +1,13 @@
 import { generateObject } from 'ai';
-import { NextRequest } from 'next/server';
+import { load } from 'cheerio';
+import pdfParse from 'pdf-parse';
+import { YoutubeTranscript } from 'youtube-transcript';
 import { z } from 'zod';
 
 import {
-    generateQuizFormHTMLPrompt,
     generateQuizFormTextPrompt,
     generateQuizFromTranscriptPrompt,
-} from '@/helpers/prompts/generateQuizPrompts';
+} from '@/helpers/prompts/generate-quiz-prompts';
 import { getDefaultNvidiaModel, getNvidiaChatModel } from '@/lib/ai/nvidia';
 import { DEFAULT_OPEN_SOURCE_MODELS } from '@/lib/ai/nvidia-models';
 import {
@@ -29,7 +30,13 @@ import {
 } from '@/lib/utils/api-response';
 import { generateUUIDv4 } from '@/utils/generate-uuid';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 const MIN_WORD_COUNT = 250;
+const DEFAULT_USER_AGENT =
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
 
 const fileInputSchema = z.object({
     name: z.string().min(1),
@@ -75,84 +82,75 @@ function getWordCount(value: string) {
     return value.trim().split(/\s+/).filter(Boolean).length;
 }
 
-function getScraperBaseUrl() {
-    if (!process.env.DATA_SCRAPING_BACKEND_URL) {
-        throw new Error('DATA_SCRAPING_BACKEND_URL is required.');
-    }
-
-    return process.env.DATA_SCRAPING_BACKEND_URL;
+function normalizeText(value: string) {
+    return value.replace(/\s+/g, ' ').trim();
 }
 
-async function parseJsonResponse(response: Response) {
+function ensureMinWordCount(text: string) {
+    if (getWordCount(text) < MIN_WORD_COUNT) {
+        throw new Error(
+            `Input text must be at least ${MIN_WORD_COUNT} words to generate a quiz.`,
+        );
+    }
+}
+
+function isYouTubeUrl(url: string) {
+    return url.includes('youtube.com') || url.includes('youtu.be');
+}
+
+function isPdfUrl(url: string) {
+    return url.toLowerCase().includes('.pdf');
+}
+
+async function extractTextFromPdfUrl(url: string) {
+    const response = await fetch(url, {
+        headers: { 'User-Agent': DEFAULT_USER_AGENT },
+        cache: 'no-store',
+    });
     if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || 'Failed to fetch external content.');
+        throw new Error('Failed to fetch the PDF file.');
     }
 
-    return response.json();
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const parsed = await pdfParse(buffer);
+    return normalizeText(parsed.text || '');
 }
 
 async function extractTextFromFile(fileInput: QuizFileInput) {
     if (fileInput.type.includes('pdf')) {
-        const scraperUrl = new URL(
-            '/data-scraper/api/v1/pdf/to_text',
-            getScraperBaseUrl(),
-        );
-        const response = await fetch(scraperUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pdf_url: fileInput.url }),
-        });
-        const data = await parseJsonResponse(response);
-
-        if (!data.success || !data.data?.text) {
-            throw new Error('Failed to process PDF file.');
-        }
-
-        return data.data.text as string;
+        return extractTextFromPdfUrl(fileInput.url);
     }
 
-    const response = await fetch(fileInput.url);
+    const response = await fetch(fileInput.url, {
+        headers: { 'User-Agent': DEFAULT_USER_AGENT },
+        cache: 'no-store',
+    });
     if (!response.ok) {
         throw new Error('Failed to fetch the uploaded file.');
     }
 
-    return response.text();
+    return normalizeText(await response.text());
 }
 
 async function extractTranscriptFromYoutube(url: string) {
-    const endpoint = new URL(
-        '/data-scraper/api/v1/youtube/transcript',
-        getScraperBaseUrl(),
-    );
-    endpoint.searchParams.set('url', url);
-
-    const response = await fetch(endpoint);
-    const data = await parseJsonResponse(response);
-
-    if (!data.success || !data.data?.transcript) {
-        throw new Error('Failed to fetch YouTube transcript.');
-    }
-
-    return data.data.transcript as string;
+    const transcript = await YoutubeTranscript.fetchTranscript(url);
+    return normalizeText(transcript.map((item) => item.text).join(' '));
 }
 
-async function extractHtmlFromLink(url: string) {
-    const endpoint = new URL(
-        '/data-scraper/api/v1/scrape/html',
-        getScraperBaseUrl(),
-    );
-    endpoint.searchParams.set('url', url);
-    endpoint.searchParams.set('clean', 'true');
-
-    const response = await fetch(endpoint);
-    const data = await parseJsonResponse(response);
-
-    if (!data.success || !data.data?.html) {
-        throw new Error('Failed to scrape the provided URL.');
+async function extractTextFromLink(url: string) {
+    const response = await fetch(url, {
+        headers: { 'User-Agent': DEFAULT_USER_AGENT },
+        cache: 'no-store',
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch the provided URL.');
     }
 
-    return data.data.html as string;
+    const html = await response.text();
+    const $ = load(html);
+    $('script, style, noscript').remove();
+    const text = $('body').text();
+    return normalizeText(text);
 }
 
 async function buildPrompt(payload: ValidGenerateQuizRequest) {
@@ -168,12 +166,7 @@ async function buildPrompt(payload: ValidGenerateQuizRequest) {
     if (payload.inputType === 'file') {
         const fileInput = payload.input as QuizFileInput;
         const text = await extractTextFromFile(fileInput);
-
-        if (getWordCount(text) < MIN_WORD_COUNT) {
-            throw new Error(
-                `Input text must be at least ${MIN_WORD_COUNT} words to generate a quiz.`,
-            );
-        }
+        ensureMinWordCount(text);
 
         return generateQuizFormTextPrompt(
             text,
@@ -183,8 +176,9 @@ async function buildPrompt(payload: ValidGenerateQuizRequest) {
     }
 
     const inputUrl = payload.input as string;
-    if (inputUrl.includes('youtube.com/watch?v=')) {
+    if (isYouTubeUrl(inputUrl)) {
         const transcript = await extractTranscriptFromYoutube(inputUrl);
+        ensureMinWordCount(transcript);
         return generateQuizFromTranscriptPrompt(
             transcript,
             payload.numberOfQuestions,
@@ -192,9 +186,20 @@ async function buildPrompt(payload: ValidGenerateQuizRequest) {
         );
     }
 
-    const html = await extractHtmlFromLink(inputUrl);
-    return generateQuizFormHTMLPrompt(
-        html,
+    if (isPdfUrl(inputUrl)) {
+        const pdfText = await extractTextFromPdfUrl(inputUrl);
+        ensureMinWordCount(pdfText);
+        return generateQuizFormTextPrompt(
+            pdfText,
+            payload.numberOfQuestions,
+            payload.difficulty,
+        );
+    }
+
+    const text = await extractTextFromLink(inputUrl);
+    ensureMinWordCount(text);
+    return generateQuizFormTextPrompt(
+        text,
         payload.numberOfQuestions,
         payload.difficulty,
     );
@@ -290,7 +295,7 @@ function toDatabaseErrorResponse(error: Error) {
     );
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
     try {
         const rawBody: QuizGenerationRequest = await request.json();
         const payload = generateQuizRequestSchema.parse(rawBody);

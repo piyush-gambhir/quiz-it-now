@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
-import { useAuthSession } from '@/hooks/auth/useSession';
+import { useAuthSession } from '@/hooks/auth/use-session';
 import { cn } from '@/lib/utils';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -95,14 +95,12 @@ const Header = () => {
                     </Button>
                     {!isAuthenticated ? (
                         <>
-                            <Link href="/login">
-                                <Button variant="ghost" size="sm">
-                                    Log in
-                                </Button>
-                            </Link>
-                            <Link href="/register">
-                                <Button size="sm">Get Started</Button>
-                            </Link>
+                            <Button variant="ghost" size="sm" asChild>
+                                <Link href="/login">Log in</Link>
+                            </Button>
+                            <Button size="sm" asChild>
+                                <Link href="/register">Get Started</Link>
+                            </Button>
                         </>
                     ) : (
                         <DropdownMenu>
@@ -217,19 +215,20 @@ const Header = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <Link href="/login">
-                                            <Button
-                                                variant="outline"
-                                                className="w-full"
-                                            >
+                                        <Button
+                                            variant="outline"
+                                            className="w-full"
+                                            asChild
+                                        >
+                                            <Link href="/login">
                                                 Log in
-                                            </Button>
-                                        </Link>
-                                        <Link href="/register">
-                                            <Button className="w-full">
+                                            </Link>
+                                        </Button>
+                                        <Button className="w-full" asChild>
+                                            <Link href="/register">
                                                 Get Started
-                                            </Button>
-                                        </Link>
+                                            </Link>
+                                        </Button>
                                     </>
                                 )}
                             </div>

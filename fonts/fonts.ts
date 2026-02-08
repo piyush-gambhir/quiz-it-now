@@ -1,5 +1,5 @@
 // Local fonts
-import { NeueMontreal } from './localFonts';
+import { NeueMontreal } from './local-fonts';
 
 // Google fonts
 import {
@@ -9,7 +9,7 @@ import {
     Outfit,
     Poppins,
     Roboto,
-} from './googleFonts';
+} from './google-fonts';
 
 export {
     BebasNeue,

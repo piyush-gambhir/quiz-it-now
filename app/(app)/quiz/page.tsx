@@ -1,8 +1,15 @@
 import { auth } from '@/auth';
 
+import type { Metadata } from 'next';
+
 import QuizzesPage from '@/components/quizzes-page';
 import { QuizDocument } from '@/lib/types/quiz';
 import { getRequestBaseUrl } from '@/lib/utils/request-url';
+
+export const metadata: Metadata = {
+    title: 'My Quizzes',
+    description: 'View and manage all your AI-generated quizzes.',
+};
 
 export default async function Page({
     searchParams,

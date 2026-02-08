@@ -1,5 +1,5 @@
-import { Outfit } from '@/fonts/googleFonts';
-import { Providers } from '@/providers/Providers';
+import { Outfit } from '@/fonts/google-fonts';
+import { Providers } from '@/providers/providers';
 
 import type { Metadata } from 'next';
 import React from 'react';
@@ -12,7 +12,10 @@ import { cn } from '@/lib/utils';
 import './globals.css';
 
 export const metadata: Metadata = {
-    title: 'QuizItNow',
+    title: {
+        default: 'QuizItNow',
+        template: '%s | QuizItNow',
+    },
     description:
         'QuizItNow is a platform that allows you to create and customize quizzes effortlessly using AI with any input source.',
 };
@@ -23,7 +26,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning>
             <body className={cn(Outfit.variable, 'font-sans antialiased')}>
                 <Providers>
                     <Header />

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { useAuthSession } from '@/hooks/auth/useSession';
+import { useAuthSession } from '@/hooks/auth/use-session';
 import { QuizDocument } from '@/lib/types/quiz';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';

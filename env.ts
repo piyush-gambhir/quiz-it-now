@@ -1,4 +1,4 @@
-import '@/envConfig.ts';
+import '@/env-config';
 import { createEnv } from '@t3-oss/env-nextjs';
 
 import { z } from 'zod';
@@ -25,7 +25,6 @@ export const env = createEnv({
         AWS_SECRET_ACCESS_KEY: z.string().optional(),
         S3_BUCKET_NAME: z.string().optional(),
         S3_PUBLIC_BASE_URL: z.string().url().optional(),
-        DATA_SCRAPING_BACKEND_URL: z.string().optional(),
         NVIDIA_API_KEY: z.string().optional(),
         NVIDIA_BASE_URL: z.string().url().optional(),
         NVIDIA_MODEL: z.string().optional(),
@@ -67,7 +66,6 @@ export const env = createEnv({
         AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
         S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
         S3_PUBLIC_BASE_URL: process.env.S3_PUBLIC_BASE_URL,
-        DATA_SCRAPING_BACKEND_URL: process.env.DATA_SCRAPING_BACKEND_URL,
         OLLAMA_BASE_URL: process.env.OLLAMA_BASE_URL,
         OPENAI_API_KEY: process.env.OPENAI_API_KEY,
         NVIDIA_BASE_URL: process.env.NVIDIA_BASE_URL,

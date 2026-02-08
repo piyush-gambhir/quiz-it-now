@@ -1,6 +1,14 @@
 import { Building2, Target, Users, Zap } from 'lucide-react';
+import Link from 'next/link';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'About',
+    description:
+        'Learn about QuizItNow — our mission to transform learning with AI-powered quiz generation.',
+};
 
 const values = [
     {
@@ -123,12 +131,12 @@ export default function AboutPage() {
                         Join thousands of educators and content creators who are
                         saving time with AI-powered quizzes.
                     </p>
-                    <a
+                    <Link
                         href="/register"
                         className="inline-flex items-center justify-center rounded-md bg-background text-foreground px-8 py-3 font-medium hover:bg-background/90 transition-colors"
                     >
                         Get Started for Free
-                    </a>
+                    </Link>
                 </div>
             </section>
         </main>

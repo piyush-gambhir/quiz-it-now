@@ -1,8 +1,8 @@
 import { auth } from '@/auth';
-import { NextAuthSessionProvider } from '@/providers/NextAuthSessionProvider';
+import { NextAuthSessionProvider } from '@/providers/next-auth-session-provider';
+import { ThemeProvider } from '@/providers/theme-provider';
 
 import { Session } from 'next-auth';
-import { ThemeProvider } from 'next-themes';
 import React from 'react';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -14,7 +14,6 @@ export async function Providers({
 }>) {
     const authSession = await auth();
 
-    // Only render NextAuthSessionProvider if session is not null
     return (
         <NextAuthSessionProvider session={authSession as Session}>
             <ThemeProvider

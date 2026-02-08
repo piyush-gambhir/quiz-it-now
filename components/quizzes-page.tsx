@@ -15,8 +15,8 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { QuizDocument } from '@/lib/types/quiz';
 
-import { useAuthSession } from '@/hooks/auth/useSession';
-import { useQueryParams } from '@/hooks/useQueryParams';
+import { useAuthSession } from '@/hooks/auth/use-session';
+import { useQueryParams } from '@/hooks/use-query-params';
 
 import {
     AlertDialog,
