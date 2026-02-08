@@ -14,6 +14,7 @@ export const env = createEnv({
         MONGODB_URI: z.string().optional(),
         MONGODB_DB: z.string().optional(),
         AUTH_SECRET: z.string().optional(),
+        AUTH_DEBUG: z.enum(['true', 'false']).optional(),
         GITHUB_CLIENT_ID: z.string().optional(),
         GITHUB_CLIENT_SECRET: z.string().optional(),
         GOOGLE_CLIENT_ID: z.string().optional(),
@@ -23,8 +24,17 @@ export const env = createEnv({
         AWS_ACCESS_KEY_ID: z.string().optional(),
         AWS_SECRET_ACCESS_KEY: z.string().optional(),
         S3_BUCKET_NAME: z.string().optional(),
+        S3_PUBLIC_BASE_URL: z.string().url().optional(),
         DATA_SCRAPING_BACKEND_URL: z.string().optional(),
         NVIDIA_API_KEY: z.string().optional(),
+        NVIDIA_BASE_URL: z.string().url().optional(),
+        NVIDIA_MODEL: z.string().optional(),
+        NVIDIA_MODELS: z.string().optional(),
+        OLLAMA_BASE_URL: z
+            .string()
+            .optional()
+            .default('http://localhost:11434'),
+        OPENAI_API_KEY: z.string().optional(),
     },
 
     /**
@@ -45,6 +55,7 @@ export const env = createEnv({
         MONGODB_DB: process.env.MONGODB_DB,
         NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
         AUTH_SECRET: process.env.AUTH_SECRET,
+        AUTH_DEBUG: process.env.AUTH_DEBUG,
         GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
         GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
         GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
@@ -55,7 +66,13 @@ export const env = createEnv({
         AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
         AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
         S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
+        S3_PUBLIC_BASE_URL: process.env.S3_PUBLIC_BASE_URL,
         DATA_SCRAPING_BACKEND_URL: process.env.DATA_SCRAPING_BACKEND_URL,
+        OLLAMA_BASE_URL: process.env.OLLAMA_BASE_URL,
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+        NVIDIA_BASE_URL: process.env.NVIDIA_BASE_URL,
+        NVIDIA_MODEL: process.env.NVIDIA_MODEL,
+        NVIDIA_MODELS: process.env.NVIDIA_MODELS,
     },
     /**
    Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

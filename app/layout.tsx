@@ -1,12 +1,13 @@
-import { Inter } from '@/fonts/fonts';
+import { Outfit } from '@/fonts/googleFonts';
 import { Providers } from '@/providers/Providers';
 
 import type { Metadata } from 'next';
 import React from 'react';
 
+import Footer from '@/components/footer';
+import Header from '@/components/header';
+import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
 
 import './globals.css';
 
@@ -23,12 +24,12 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <head></head>
-            <body className={cn(Inter.className)}>
+            <body className={cn(Outfit.variable, 'font-sans antialiased')}>
                 <Providers>
                     <Header />
                     {children}
                     <Footer />
+                    <Toaster />
                 </Providers>
             </body>
         </html>

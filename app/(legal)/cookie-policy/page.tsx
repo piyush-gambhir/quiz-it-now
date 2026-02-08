@@ -1,5 +1,5 @@
-import CookiePolicyPage from '@/components/CookiePolicy';
+import CookiePolicyPage from '@/components/cookie-policy';
 
-export default function page() {
+export default function Page() {
     return <CookiePolicyPage />;
 }

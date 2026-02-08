@@ -1,40 +1,19 @@
-import { db } from '@/lib/mongo/client';
-import { generateUUIDv4 } from '@/utils/generate-uuid';
+import { User } from '@/lib/models';
+import { connectToDatabase } from '@/lib/mongo/client';
 
 export async function GET(request: Request) {
     try {
-        // const session = await auth();
-        // if (!session) {
-        //   return new Response(
-        //     JSON.stringify({
-        //       success: false,
-        //       statusCode: 401,
-        //       message: 'Unauthorized',
-        //       data: null,
-        //       error: {
-        //         code: 401,
-        //         message: 'Authentication required',
-        //       },
-        //     }),
-        //     {
-        //       status: 401,
-        //       headers: { 'Content-Type': 'application/json' },
-        //     },
-        //   );
-        // }
-
         const { searchParams } = new URL(request.url);
         const email = searchParams.get('email');
         const userId = searchParams.get('userId');
 
-        const database = await db;
-        const collection = database.collection('users');
+        await connectToDatabase();
 
         let user = null;
         if (email) {
-            user = await collection.findOne({ email });
+            user = await User.findOne({ email }).lean();
         } else if (userId) {
-            user = await collection.findOne({ userId });
+            user = await User.findById(userId).lean();
         } else {
             return new Response(
                 JSON.stringify({
@@ -119,7 +98,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { email, name, avatar } = body;
+        const { email, name, image } = body;
 
         if (!email) {
             return new Response(
@@ -140,10 +119,9 @@ export async function POST(request: Request) {
             );
         }
 
-        const database = await db;
-        const collection = database.collection('users');
+        await connectToDatabase();
 
-        const existingUser = await collection.findOne({ email });
+        const existingUser = await User.findOne({ email });
         if (existingUser) {
             return new Response(
                 JSON.stringify({
@@ -163,18 +141,11 @@ export async function POST(request: Request) {
             );
         }
 
-        const now = new Date();
-        const user = {
-            userId: generateUUIDv4(),
+        const createdUser = await User.create({
             email,
-            name: name || null,
-            avatar: avatar || null,
-            createdAt: now,
-            updatedAt: now,
-        };
-
-        const result = await collection.insertOne(user);
-        const createdUser = { ...user, _id: result.insertedId };
+            name: name || undefined,
+            image: image || undefined,
+        });
 
         return new Response(
             JSON.stringify({

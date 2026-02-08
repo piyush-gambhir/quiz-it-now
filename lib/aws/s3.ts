@@ -1,5 +1,3 @@
-'use server';
-
 import { env } from '@/env';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post';

@@ -1,118 +1,75 @@
-import {
-    FaDiscord,
-    FaRedditAlien,
-    FaTelegramPlane,
-    FaTwitter,
-} from 'react-icons/fa';
-
-import { Separator } from '@/components/ui/separator';
-
-const sections = [
-    {
-        title: 'Product',
-        links: [
-            { name: 'Overview', href: '#' },
-            { name: 'Pricing', href: '#' },
-            { name: 'Quiz Templates', href: '#' },
-            { name: 'Features', href: '#' },
-            { name: 'AI Quiz Generator', href: '#' },
-            { name: 'Integrations', href: '#' },
-        ],
-    },
-    {
-        title: 'Company',
-        links: [
-            { name: 'About Us', href: '#' },
-            { name: 'Team', href: '#' },
-            { name: 'Blog', href: '#' },
-            { name: 'Careers', href: '#' },
-            { name: 'Contact', href: '#' },
-            { name: 'Privacy Policy', href: '#' },
-        ],
-    },
-    {
-        title: 'Resources',
-        links: [
-            { name: 'Help Center', href: '#' },
-            { name: 'Community', href: '#' },
-            { name: 'API Documentation', href: '#' },
-        ],
-    },
-    {
-        title: 'Legal',
-        links: [
-            { name: 'Terms of Service', href: '#' },
-            { name: 'Privacy Policy', href: '#' },
-        ],
-    },
-];
+import Link from 'next/link';
+import { FaGithub, FaTwitter } from 'react-icons/fa';
 
 const Footer = () => {
     return (
-        <section className="py-24 px-8">
-            <div className="container mx-auto">
-                <footer>
-                    <div className="flex flex-col justify-between gap-8 md:flex-row md:items-center">
-                        <div className="flex flex-col gap-4 md:flex-row md:items-center">
-                            <p className="text-lg font-medium text-primary">
-                                Take your learning experience to the next level.
-                            </p>
+        <footer className="border-t border-border/40">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+                <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="flex size-7 items-center justify-center rounded bg-primary text-xs font-bold text-primary-foreground">
+                            Q
                         </div>
+                        <span className="text-sm font-semibold">QuizItNow</span>
                     </div>
-                    <Separator className="my-14" />
-                    <div className="grid gap-8 grid-cols-2 lg:grid-cols-4">
-                        {sections.map((section, sectionIdx) => (
-                            <div key={sectionIdx}>
-                                <h3 className="mb-4 font-bold text-primary">
-                                    {section.title}
-                                </h3>
-                                <ul className="space-y-4 ">
-                                    {section.links.map((link, linkIdx) => (
-                                        <li
-                                            key={linkIdx}
-                                            className="font-medium hover:text-primary"
-                                        >
-                                            <a href={link.href}>{link.name}</a>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ))}
-                        <div>
-                            <h3 className="mb-4 mt-8 font-bold text-primary">
-                                Social
-                            </h3>
-                            <ul className="flex items-center space-x-6 ">
-                                <li className="font-medium hover:text-primary">
-                                    <a href="#">
-                                        <FaDiscord className="size-6" />
-                                    </a>
-                                </li>
-                                <li className="font-medium hover:text-primary">
-                                    <a href="#">
-                                        <FaRedditAlien className="size-6" />
-                                    </a>
-                                </li>
-                                <li className="font-medium hover:text-primary">
-                                    <a href="#">
-                                        <FaTwitter className="size-6" />
-                                    </a>
-                                </li>
-                                <li className="font-medium hover:text-primary">
-                                    <a href="#">
-                                        <FaTelegramPlane className="size-6" />
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
+
+                    <nav className="flex flex-wrap items-center gap-6">
+                        <Link
+                            href="/privacy-policy"
+                            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                            Privacy
+                        </Link>
+                        <Link
+                            href="/terms-of-service"
+                            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                            Terms
+                        </Link>
+                        <Link
+                            href="/cookie-policy"
+                            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                            Cookies
+                        </Link>
+                        <Link
+                            href="/contact-us"
+                            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                            Contact
+                        </Link>
+                    </nav>
+
+                    <div className="flex items-center gap-3">
+                        <a
+                            href="https://github.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            aria-label="GitHub"
+                        >
+                            <FaGithub className="size-4" />
+                        </a>
+                        <a
+                            href="https://twitter.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            aria-label="Twitter"
+                        >
+                            <FaTwitter className="size-4" />
+                        </a>
                     </div>
-                    <Separator className="my-14" />
-                    <p className="text-sm  text-center">
-                        © 2024 Quiz Master. All rights reserved.
+                </div>
+
+                <div className="mt-8 border-t border-border/40 pt-6">
+                    <p className="text-xs text-muted-foreground">
+                        &copy; {new Date().getFullYear()} QuizItNow. All rights
+                        reserved.
                     </p>
-                </footer>
+                </div>
             </div>
-        </section>
+        </footer>
     );
 };
 

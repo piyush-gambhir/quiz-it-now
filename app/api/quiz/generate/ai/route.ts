@@ -1,20 +1,35 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
+import { generateObject } from 'ai';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 
-import {
-    ChatMessage,
-    getChatCompletion as getNvidiaChatCompletion,
-} from '@/helpers/nvidia';
 import {
     generateQuizFormHTMLPrompt,
     generateQuizFormTextPrompt,
     generateQuizFromTranscriptPrompt,
 } from '@/helpers/prompts/generateQuizPrompts';
-
+import { getDefaultNvidiaModel, getNvidiaChatModel } from '@/lib/ai/nvidia';
+import { DEFAULT_OPEN_SOURCE_MODELS } from '@/lib/ai/nvidia-models';
+import {
+    generatedQuizSchema,
+    sanitizeGeneratedQuiz,
+} from '@/lib/ai/quiz-object-schema';
 import logger from '@/lib/logger/winston';
-import { db } from '@/lib/mongo/client';
+import { Quiz } from '@/lib/models';
+import { connectToDatabase } from '@/lib/mongo/client';
+import {
+    QuizDifficulty,
+    QuizFileInput,
+    QuizGenerationRequest,
+    QuizInputType,
+} from '@/lib/types/quiz';
+import {
+    createErrorResponse,
+    createSuccessResponse,
+    toNextResponse,
+} from '@/lib/utils/api-response';
 import { generateUUIDv4 } from '@/utils/generate-uuid';
+
+const MIN_WORD_COUNT = 250;
 
 const fileInputSchema = z.object({
     name: z.string().min(1),
@@ -22,512 +37,339 @@ const fileInputSchema = z.object({
     url: z.string().url(),
 });
 
-const generateQuizRequestSchema = z.object({
-    userId: z.string().min(1),
-    input: z.union([z.string(), fileInputSchema, z.string().url()]),
-    inputType: z.enum(['text', 'file', 'link']),
-    numberOfQuestions: z.number().int().positive().default(5),
-    difficulty: z.enum(['Easy', 'Medium', 'Hard', 'God Mode']).default('Easy'),
-    model: z.string().default('nvidia/llama-3.1-nemotron-70b-instruct'),
-});
+const generateQuizRequestSchema = z
+    .object({
+        userId: z.string().min(1).optional().default('anonymous'),
+        input: z.union([z.string().min(1), fileInputSchema]),
+        inputType: z.enum(['text', 'file', 'link']),
+        numberOfQuestions: z.number().int().min(3).max(25).default(5),
+        difficulty: z
+            .enum(['Easy', 'Medium', 'Hard', 'God Mode'])
+            .default('Medium'),
+        model: z.string().min(1).optional(),
+    })
+    .superRefine((value, ctx) => {
+        if (value.inputType === 'file' && typeof value.input === 'string') {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'File input must include a file object.',
+                path: ['input'],
+            });
+        }
 
-type GenerateQuizRequest = z.infer<typeof generateQuizRequestSchema>;
+        if (
+            (value.inputType === 'text' || value.inputType === 'link') &&
+            typeof value.input !== 'string'
+        ) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `${value.inputType} input must be a string.`,
+                path: ['input'],
+            });
+        }
+    });
 
-interface QuizQuestion {
-    id: string;
-    type: 'multiple-choice' | 'true/false' | 'fill-in-the-blank';
-    question: string;
-    options: string[];
-    answer: string;
-    explanation: string;
-    tags: string[];
+type ValidGenerateQuizRequest = z.infer<typeof generateQuizRequestSchema>;
+
+function getWordCount(value: string) {
+    return value.trim().split(/\s+/).filter(Boolean).length;
 }
 
-interface LLMResponse {
-    title: string;
-    description: string;
-    difficulty: string;
-    topic: string;
-    tags: string[];
-    questions: QuizQuestion[];
+function getScraperBaseUrl() {
+    if (!process.env.DATA_SCRAPING_BACKEND_URL) {
+        throw new Error('DATA_SCRAPING_BACKEND_URL is required.');
+    }
+
+    return process.env.DATA_SCRAPING_BACKEND_URL;
 }
 
-const formatJson = (
-    jsonString: string,
-): LLMResponse | { error: string } | null => {
-    try {
-        logger.debug('Starting JSON formatting');
-        jsonString = jsonString.replace(/```json|```/g, '');
-
-        const jsonRegex = /(\{[\s\S]*\})/;
-        const jsonMatch = jsonRegex.exec(jsonString);
-        if (!jsonMatch) {
-            logger.warn('No valid JSON object found in response');
-            return { error: 'No valid JSON object found in the response.' };
-        }
-
-        const cleanJsonString = jsonMatch[1].trim();
-        logger.debug('Cleaned JSON string:', cleanJsonString);
-
-        const jsonData = JSON.parse(cleanJsonString);
-        logger.debug('Successfully parsed JSON data');
-
-        if ('error' in jsonData) {
-            logger.warn('Error found in JSON data:', jsonData.error);
-            return jsonData;
-        }
-
-        const requiredMetadata = [
-            'title',
-            'description',
-            'difficulty',
-            'topic',
-            'tags',
-            'questions',
-        ];
-        for (const field of requiredMetadata) {
-            if (!(field in jsonData)) {
-                logger.warn(`Missing required field in JSON: ${field}`);
-                return {
-                    error: `Invalid JSON structure: Missing '${field}' field.`,
-                };
-            }
-        }
-
-        if (!Array.isArray(jsonData.questions)) {
-            logger.warn('Questions field is not an array');
-            return {
-                error: "Invalid JSON format: 'questions' should be a list.",
-            };
-        }
-
-        for (const item of jsonData.questions) {
-            if (!item.id) {
-                logger.debug('Generating missing question ID');
-                item.id = uuidv4();
-            }
-            if (
-                !item.type ||
-                ![
-                    'multiple-choice',
-                    'true/false',
-                    'fill-in-the-blank',
-                ].includes(item.type)
-            ) {
-                logger.warn(`Invalid question type found: ${item.type}`);
-                return {
-                    error: `Invalid question type: '${item.type}' is not allowed.`,
-                };
-            }
-            if (
-                !item.question ||
-                !item.options ||
-                !item.answer ||
-                !item.explanation ||
-                !item.tags
-            ) {
-                logger.warn('Question missing required fields');
-                return {
-                    error: `Invalid question structure: Missing required fields in question.`,
-                };
-            }
-        }
-
-        jsonData.questions.forEach((question: QuizQuestion) => {
-            question.id = generateUUIDv4();
-            logger.debug(`Generated UUID for question: ${question.id}`);
-        });
-
-        logger.info('Successfully formatted and validated JSON response');
-        return jsonData as LLMResponse;
-    } catch (e) {
-        logger.error('Error while parsing JSON response:', e);
-        return { error: 'Error while parsing JSON response.' };
-    }
-};
-
-const generateLLMResponse = async (
-    prompt: string,
-    retries: number = 3,
-): Promise<LLMResponse | { error: string } | null> => {
-    for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-            logger.info(`Starting LLM generation attempt ${attempt}`);
-            let fullResponse = '';
-
-            const model = 'nvidia/llama-3.1-nemotron-70b-instruct';
-            const messages: ChatMessage[] = [{ role: 'user', content: prompt }];
-
-            logger.debug(`Using model: ${model}`);
-            for await (const text of getNvidiaChatCompletion(model, messages)) {
-                fullResponse += text;
-            }
-
-            logger.info(`LLM Response (Attempt ${attempt}): ${fullResponse}`);
-
-            const formattedData = formatJson(fullResponse);
-            if (formattedData && !('error' in formattedData)) {
-                logger.info(
-                    'Successfully generated and formatted LLM response',
-                );
-                return formattedData;
-            } else if (formattedData && 'error' in formattedData) {
-                logger.error(
-                    `LLM Error (Attempt ${attempt}): ${formattedData.error}`,
-                );
-                return formattedData;
-            } else {
-                throw new Error('Formatted data is null or contains errors.');
-            }
-        } catch (error: any) {
-            logger.error(
-                `LLM Generation Error (Attempt ${attempt}): ${error.message}`,
-            );
-            if (attempt === retries) {
-                return {
-                    error: 'Failed to generate a valid response from the LLM.',
-                };
-            }
-            logger.info(`Retrying in ${1000 * attempt}ms`);
-            await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
-        }
+async function parseJsonResponse(response: Response) {
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || 'Failed to fetch external content.');
     }
 
-    logger.error('Failed to generate valid response after all retries');
-    return {
-        error: 'Failed to generate a valid response from the Hugging Face Inference API after multiple attempts.',
-    };
-};
+    return response.json();
+}
 
-export async function POST(req: NextRequest) {
-    try {
-        logger.info('Received POST request for quiz generation');
-        const data: GenerateQuizRequest = await req.json();
-
-        try {
-            logger.debug('Validating request data with Zod schema');
-            generateQuizRequestSchema.parse(data); // This will throw an error if validation fails
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                logger.warn('Validation error:', error.issues[0].message);
-                return NextResponse.json(
-                    {
-                        success: false,
-                        error: {
-                            message: error.issues[0].message,
-                            type: 'VALIDATION_ERROR',
-                            code: 'VALIDATION_ERROR',
-                            params: null,
-                        },
-                    },
-                    { status: 400 },
-                );
-            }
-        }
-
-        const {
-            userId,
-            input,
-            inputType,
-            numberOfQuestions,
-            difficulty,
-            model,
-        } = data;
-
-        logger.info(
-            `Received quiz generation request: ${JSON.stringify(data)}`,
+async function extractTextFromFile(fileInput: QuizFileInput) {
+    if (fileInput.type.includes('pdf')) {
+        const scraperUrl = new URL(
+            '/data-scraper/api/v1/pdf/to_text',
+            getScraperBaseUrl(),
         );
+        const response = await fetch(scraperUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pdf_url: fileInput.url }),
+        });
+        const data = await parseJsonResponse(response);
 
-        let processedText = '';
-        let processedHtml = '';
-        let processedTranscript = '';
-        if (inputType === 'text') {
-            logger.debug('Processing text input');
-            processedText = input as string;
-        } else if (inputType === 'file') {
-            logger.debug('Processing file input');
-            const fileInput = input as z.infer<typeof fileInputSchema>;
+        if (!data.success || !data.data?.text) {
+            throw new Error('Failed to process PDF file.');
+        }
+
+        return data.data.text as string;
+    }
+
+    const response = await fetch(fileInput.url);
+    if (!response.ok) {
+        throw new Error('Failed to fetch the uploaded file.');
+    }
+
+    return response.text();
+}
+
+async function extractTranscriptFromYoutube(url: string) {
+    const endpoint = new URL(
+        '/data-scraper/api/v1/youtube/transcript',
+        getScraperBaseUrl(),
+    );
+    endpoint.searchParams.set('url', url);
+
+    const response = await fetch(endpoint);
+    const data = await parseJsonResponse(response);
+
+    if (!data.success || !data.data?.transcript) {
+        throw new Error('Failed to fetch YouTube transcript.');
+    }
+
+    return data.data.transcript as string;
+}
+
+async function extractHtmlFromLink(url: string) {
+    const endpoint = new URL(
+        '/data-scraper/api/v1/scrape/html',
+        getScraperBaseUrl(),
+    );
+    endpoint.searchParams.set('url', url);
+    endpoint.searchParams.set('clean', 'true');
+
+    const response = await fetch(endpoint);
+    const data = await parseJsonResponse(response);
+
+    if (!data.success || !data.data?.html) {
+        throw new Error('Failed to scrape the provided URL.');
+    }
+
+    return data.data.html as string;
+}
+
+async function buildPrompt(payload: ValidGenerateQuizRequest) {
+    if (payload.inputType === 'text') {
+        const input = payload.input as string;
+        return generateQuizFormTextPrompt(
+            input,
+            payload.numberOfQuestions,
+            payload.difficulty,
+        );
+    }
+
+    if (payload.inputType === 'file') {
+        const fileInput = payload.input as QuizFileInput;
+        const text = await extractTextFromFile(fileInput);
+
+        if (getWordCount(text) < MIN_WORD_COUNT) {
+            throw new Error(
+                `Input text must be at least ${MIN_WORD_COUNT} words to generate a quiz.`,
+            );
+        }
+
+        return generateQuizFormTextPrompt(
+            text,
+            payload.numberOfQuestions,
+            payload.difficulty,
+        );
+    }
+
+    const inputUrl = payload.input as string;
+    if (inputUrl.includes('youtube.com/watch?v=')) {
+        const transcript = await extractTranscriptFromYoutube(inputUrl);
+        return generateQuizFromTranscriptPrompt(
+            transcript,
+            payload.numberOfQuestions,
+            payload.difficulty,
+        );
+    }
+
+    const html = await extractHtmlFromLink(inputUrl);
+    return generateQuizFormHTMLPrompt(
+        html,
+        payload.numberOfQuestions,
+        payload.difficulty,
+    );
+}
+
+async function generateQuizFromPrompt(
+    prompt: string,
+    modelCandidates: string[],
+    difficulty: QuizDifficulty,
+    numberOfQuestions: number,
+) {
+    let lastError: unknown = null;
+
+    for (const model of modelCandidates) {
+        for (let attempt = 1; attempt <= 2; attempt += 1) {
             try {
-                if (fileInput.type.includes('pdf')) {
-                    logger.debug('Processing PDF file');
-                    const pdf_to_text_url = new URL(
-                        `${process.env.DATA_SCRAPING_BACKEND_URL}/data-scraper/api/v1/pdf/to_text`,
-                    );
-                    const pdfResponse = await fetch(pdf_to_text_url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            pdf_url: fileInput.url,
-                        }),
-                    });
+                const { object } = await generateObject({
+                    model: getNvidiaChatModel(model),
+                    schema: generatedQuizSchema,
+                    prompt,
+                    temperature: 0.3,
+                });
 
-                    if (!pdfResponse.ok) {
-                        throw new Error('Failed to convert PDF to text.');
-                    }
-
-                    const pdfData = await pdfResponse.json();
-                    if (!pdfData.success) {
-                        throw new Error(
-                            pdfData.error || 'Failed to process PDF file.',
-                        );
-                    }
-
-                    processedText = pdfData.data.text;
-                    logger.debug('Successfully processed PDF content');
-                } else {
-                    logger.info(
-                        `Fetching file content from URL: ${fileInput.url}`,
-                    );
-                    const fileResponse = await fetch(fileInput.url);
-                    if (!fileResponse.ok) {
-                        throw new Error(
-                            'Failed to fetch the file from the provided URL.',
-                        );
-                    }
-                    const fileContent = await fileResponse.text();
-                    processedText = fileContent;
-                    logger.debug('Successfully processed file content');
-                }
-            } catch (fileError: any) {
-                logger.error('File processing error:', fileError);
-                return NextResponse.json(
-                    {
-                        success: false,
-                        error: {
-                            message:
-                                fileError.message ||
-                                'Failed to process the file input.',
-                            type: 'VALIDATION_ERROR',
-                            code: 'FILE_INPUT_ERROR',
-                            params: null,
-                        },
-                    },
-                    { status: 400 },
+                const quiz = sanitizeGeneratedQuiz(
+                    object,
+                    difficulty,
+                    numberOfQuestions,
                 );
-            }
-        } else if (inputType === 'link') {
-            const inputUrl = input as string;
-            if (inputUrl.includes('youtube.com/watch?v=')) {
-                logger.debug('Processing YouTube link');
-                try {
-                    const get_youtube_transcript_url = new URL(
-                        `${process.env.DATA_SCRAPING_BACKEND_URL}/data-scraper/api/v1/youtube/transcript`,
-                    );
-                    get_youtube_transcript_url.searchParams.set(
-                        'url',
-                        inputUrl,
-                    );
-                    const response = await fetch(
-                        get_youtube_transcript_url,
-                    ).then((res) => res.json());
-                    if (!response.success) {
-                        throw new Error(response.error);
-                    }
-                    const transcript = response.data.transcript;
-                    processedTranscript += transcript;
-                    logger.debug('Successfully fetched YouTube transcript');
-                } catch (error: any) {
-                    logger.error('YouTube transcript fetch error:', error);
-                    return NextResponse.json(
-                        {
-                            success: false,
-                            error: {
-                                message:
-                                    error.message ||
-                                    'Failed to fetch the YouTube transcript.',
-                                type: 'API_ERROR',
-                                code: 'YOUTUBE_TRANSCRIPT_API_ERROR',
-                                params: null,
-                            },
-                        },
-                        { status: 400 },
-                    );
+
+                if (quiz.questions.length === numberOfQuestions) {
+                    return { quiz, model };
                 }
-            } else {
-                logger.debug('Processing web page link');
-                try {
-                    const scrape_html_url = new URL(
-                        `${process.env.DATA_SCRAPING_BACKEND_URL}/data-scraper/api/v1/scrape/html`,
-                    );
-                    scrape_html_url.searchParams.set('url', inputUrl);
-                    scrape_html_url.searchParams.set('clean', 'true');
-                    const response = await fetch(scrape_html_url);
 
-                    if (!response.ok) {
-                        throw new Error(
-                            'Failed to fetch content from the scraping service.',
-                        );
-                    }
-
-                    const data = await response.json();
-                    if (!data.success) {
-                        throw new Error(
-                            data.error.message ||
-                                'Failed to scrape content from the provided link.',
-                        );
-                    }
-
-                    processedHtml = data.data.html;
-                    logger.debug('Successfully scraped web page content');
-                } catch (error: any) {
-                    logger.error('Web scraping error:', error);
-                    return NextResponse.json(
-                        {
-                            success: false,
-                            error: {
-                                message: error.error.message,
-                                type: 'API_ERROR',
-                                code: 'SCRAPING_API_ERROR',
-                                params: null,
-                            },
-                        },
-                        { status: 400 },
-                    );
-                }
-            }
-        } else {
-            logger.warn(`Unsupported 'inputType': ${inputType}`);
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: {
-                        message: `Unsupported 'inputType': ${inputType}`,
-                        type: 'VALIDATION_ERROR',
-                        code: 'UNSUPPORTED_INPUT_TYPE',
-                        params: null,
-                    },
-                },
-                { status: 400 },
-            );
-        }
-
-        let prompt = '';
-        if (processedHtml) {
-            logger.debug('Generating prompt from HTML content');
-            prompt = generateQuizFormHTMLPrompt(
-                processedHtml,
-                numberOfQuestions,
-                difficulty,
-            );
-        } else if (processedTranscript) {
-            logger.debug('Generating prompt from transcript');
-            prompt = generateQuizFromTranscriptPrompt(
-                processedTranscript,
-                numberOfQuestions,
-                difficulty,
-            );
-        } else {
-            const wordCount = processedText.split(/\s+/).length;
-            logger.info(`Processed text word count: ${wordCount}`);
-            if (wordCount < 250) {
+                throw new Error(
+                    `Model returned ${quiz.questions.length} questions, expected ${numberOfQuestions}.`,
+                );
+            } catch (error) {
+                lastError = error;
                 logger.warn(
-                    'Input text does not meet the minimum word count requirement.',
-                );
-                return NextResponse.json(
-                    {
-                        success: false,
-                        error: {
-                            message:
-                                'Input text must be at least 250 words to generate a quiz.',
-                            type: 'VALIDATION_ERROR',
-                            code: 'MINIMUM_WORD_COUNT_ERROR',
-                            params: null,
-                        },
-                    },
-                    { status: 400 },
+                    `Quiz generation failed for model "${model}" (attempt ${attempt}): ${error}`,
                 );
             }
-            logger.debug('Generating prompt from text content');
-            prompt = generateQuizFormTextPrompt(
-                processedText,
-                numberOfQuestions,
-                difficulty,
-            );
         }
+    }
 
-        logger.info('Prompt for LLM generation:', prompt);
+    throw lastError instanceof Error
+        ? lastError
+        : new Error('Failed to generate quiz.');
+}
 
-        const llmResult = await generateLLMResponse(prompt);
+function validateWordCountForTextInput(payload: QuizGenerationRequest) {
+    if (payload.inputType !== 'text') {
+        return;
+    }
 
-        if (!llmResult) {
-            logger.error('LLM failed to generate a response.');
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: {
-                        message:
-                            'Failed to generate or parse the response from the language model.',
-                        type: 'LLM_ERROR',
-                        code: 'LLM_GENERATION_ERROR',
-                        params: null,
-                    },
-                },
-                { status: 500 },
+    const text = payload.input as string;
+    if (getWordCount(text) < MIN_WORD_COUNT) {
+        throw new Error(
+            `Input text must be at least ${MIN_WORD_COUNT} words to generate a quiz.`,
+        );
+    }
+}
+
+function getResolvedModel(model?: string) {
+    return model?.trim() || getDefaultNvidiaModel();
+}
+
+function getModelCandidates(model?: string) {
+    const preferred = getResolvedModel(model);
+    const fallbacks = DEFAULT_OPEN_SOURCE_MODELS.map((item) => item.id);
+    return [...new Set([preferred, ...fallbacks])];
+}
+
+function toValidationError(message: string) {
+    return toNextResponse(createErrorResponse(message, 400));
+}
+
+function toDatabaseErrorResponse(error: Error) {
+    if (error.message.includes('MONGODB_URI')) {
+        return toNextResponse(
+            createErrorResponse(
+                'Database is not configured. Set MONGODB_URI and try again.',
+                500,
+            ),
+        );
+    }
+
+    return toNextResponse(
+        createErrorResponse(
+            'Could not save quiz to the database. Please try again.',
+            500,
+        ),
+    );
+}
+
+export async function POST(request: NextRequest) {
+    try {
+        const rawBody: QuizGenerationRequest = await request.json();
+        const payload = generateQuizRequestSchema.parse(rawBody);
+
+        validateWordCountForTextInput(payload);
+
+        const prompt = await buildPrompt(payload);
+        const modelCandidates = getModelCandidates(payload.model);
+
+        const { quiz: generatedQuiz, model: usedModel } =
+            await generateQuizFromPrompt(
+                prompt,
+                modelCandidates,
+                payload.difficulty,
+                payload.numberOfQuestions,
             );
-        }
 
         const quizData = {
             quizId: generateUUIDv4(),
-            userId,
+            userId: payload.userId,
             input: {
-                data: input,
-                type: inputType,
+                data: payload.input,
+                type: payload.inputType as QuizInputType,
             },
-            model,
+            aiModel: usedModel,
             quiz: {
-                numberOfQuestions,
-                ...llmResult,
+                numberOfQuestions: payload.numberOfQuestions,
+                ...generatedQuiz,
+                questions: generatedQuiz.questions.map((question) => ({
+                    ...question,
+                    id: generateUUIDv4(),
+                })),
             },
             createdAt: new Date(),
             updatedAt: new Date(),
         };
 
-        try {
-            logger.debug('Connecting to database');
-            const database = await db;
-            const collection = database.collection('quizzes');
-            await collection.insertOne(quizData);
-            logger.info(`Quiz saved to database with ID: ${quizData.quizId}`);
-        } catch (dbError: any) {
-            logger.error('Database insertion error:', dbError);
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: {
-                        type: 'DATABASE_ERROR',
-                        code: 'DATABASE_INSERTION_ERROR',
-                        params: null,
-                        message: 'Failed to save quiz to the database.',
-                    },
-                },
-                { status: 500 },
+        // Only persist to database for authenticated users
+        if (payload.userId !== 'anonymous') {
+            try {
+                await connectToDatabase();
+                await Quiz.create(quizData);
+            } catch (dbError) {
+                const error =
+                    dbError instanceof Error
+                        ? dbError
+                        : new Error('Unknown database error');
+                logger.error(
+                    `Failed to store generated quiz: ${error.message}`,
+                );
+                return toDatabaseErrorResponse(error);
+            }
+        }
+
+        return toNextResponse(
+            createSuccessResponse('Quiz generated successfully.', quizData),
+        );
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            return toValidationError(
+                error.issues[0]?.message || 'Invalid input',
             );
         }
 
-        logger.info(`Quiz generated successfully with ID: ${quizData.quizId}`);
-        return NextResponse.json(
-            {
-                success: true,
-                message: 'Quiz generated successfully.',
-                data: quizData,
-            },
-            { status: 200 },
-        );
-    } catch (error: any) {
-        logger.error('Unexpected server error:', error);
-        return NextResponse.json(
-            {
-                success: false,
-                error: {
-                    message: 'An unexpected error occurred.',
-                    type: 'SERVER_ERROR',
-                    code: 'SERVER_ERROR',
-                    params: null,
-                },
-            },
-            { status: 500 },
+        if (error instanceof Error) {
+            const isValidationError =
+                error.message.includes('words') ||
+                error.message.includes('input');
+            return toNextResponse(
+                createErrorResponse(
+                    error.message,
+                    isValidationError ? 400 : 500,
+                ),
+            );
+        }
+
+        logger.error(`Unexpected quiz generation error: ${error}`);
+        return toNextResponse(
+            createErrorResponse('An unexpected error occurred.', 500),
         );
     }
 }

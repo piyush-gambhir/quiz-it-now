@@ -1,33 +1,49 @@
-import { Db, MongoClient } from 'mongodb';
+import mongoose from 'mongoose';
 
-const uri: string = process.env.MONGODB_URI as string;
-const dbName: string = process.env.MONGODB_DB as string;
+const MONGODB_URI = process.env.MONGODB_URI as string;
 
-if (!uri || !dbName) {
+if (!MONGODB_URI) {
     throw new Error(
-        'Please define the MONGODB_URI and MONGODB_DB environment variables inside .env',
+        'Please define the MONGODB_URI environment variable inside .env',
     );
 }
 
-let cachedClient: MongoClient | null = null;
-let cachedDb: Db | null = null;
-
-export async function connectToDatabase(): Promise<Db> {
-    if (cachedDb) {
-        return cachedDb;
-    }
-
-    const client = new MongoClient(uri, {
-        serverSelectionTimeoutMS: 5000,
-    });
-    await client.connect();
-
-    const db = client.db(dbName);
-
-    cachedClient = client;
-    cachedDb = db;
-
-    return db;
+interface MongooseCache {
+    conn: typeof mongoose | null;
+    promise: Promise<typeof mongoose> | null;
 }
 
-export const db: Promise<Db> = connectToDatabase();
+declare global {
+    var mongoose: MongooseCache;
+}
+
+const cached: MongooseCache = global.mongoose || { conn: null, promise: null };
+
+if (!global.mongoose) {
+    global.mongoose = cached;
+}
+
+export async function connectToDatabase(): Promise<typeof mongoose> {
+    if (cached.conn) {
+        return cached.conn;
+    }
+
+    if (!cached.promise) {
+        const opts = {
+            bufferCommands: false,
+        };
+
+        cached.promise = mongoose.connect(MONGODB_URI, opts);
+    }
+
+    try {
+        cached.conn = await cached.promise;
+    } catch (e) {
+        cached.promise = null;
+        throw e;
+    }
+
+    return cached.conn;
+}
+
+export default mongoose;

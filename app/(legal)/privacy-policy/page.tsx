@@ -1,5 +1,5 @@
-import PrivacyPolicyPage from '@/components/PrivacyPolicyPage';
+import PrivacyPolicyPage from '@/components/privacy-policy-page';
 
-export default function page() {
+export default function Page() {
     return <PrivacyPolicyPage />;
 }

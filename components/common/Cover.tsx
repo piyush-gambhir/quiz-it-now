@@ -5,7 +5,7 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
-import { SparklesCore } from '@/components/common/Sparkles';
+import { SparklesCore } from '@/components/common/sparkles';
 
 export const Cover = ({
     children,

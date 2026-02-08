@@ -5,7 +5,7 @@ import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { Command as CommandPrimitive } from 'cmdk';
 import * as React from 'react';
 
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
 const Command = React.forwardRef<
@@ -23,12 +23,13 @@ const Command = React.forwardRef<
 ));
 Command.displayName = CommandPrimitive.displayName;
 
-interface CommandDialogProps extends DialogProps {}
+type CommandDialogProps = DialogProps;
 
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
     return (
         <Dialog {...props}>
             <DialogContent className="overflow-hidden p-0">
+                <DialogTitle className="sr-only">Command Menu</DialogTitle>
                 <Command>{children}</Command>
             </DialogContent>
         </Dialog>
@@ -43,7 +44,10 @@ const CommandInput = React.forwardRef<
         <MagnifyingGlassIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
         <CommandPrimitive.Input
             ref={ref}
-            className={cn(className)}
+            className={cn(
+                'flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50',
+                className,
+            )}
             {...props}
         />
     </div>
@@ -84,7 +88,14 @@ const CommandGroup = React.forwardRef<
     React.ElementRef<typeof CommandPrimitive.Group>,
     React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
 >(({ className, ...props }, ref) => (
-    <CommandPrimitive.Group ref={ref} className={cn(className)} {...props} />
+    <CommandPrimitive.Group
+        ref={ref}
+        className={cn(
+            'overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground',
+            className,
+        )}
+        {...props}
+    />
 ));
 
 CommandGroup.displayName = CommandPrimitive.Group.displayName;
@@ -121,7 +132,15 @@ const CommandShortcut = ({
     className,
     ...props
 }: React.HTMLAttributes<HTMLSpanElement>) => {
-    return <span {...props} />;
+    return (
+        <span
+            className={cn(
+                'ml-auto text-xs tracking-widest text-muted-foreground',
+                className,
+            )}
+            {...props}
+        />
+    );
 };
 CommandShortcut.displayName = 'CommandShortcut';
 

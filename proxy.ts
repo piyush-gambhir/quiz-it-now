@@ -1,0 +1,54 @@
+import { DEFAULT_LANDING_PAGE, authRoutes, publicRoutes } from '@/routes';
+
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+
+import { getServerSession } from '@/lib/auth/get-session';
+
+// Proxy function to handle route-based authentication using sessions
+export async function proxy(req: NextRequest) {
+    const { pathname, origin, search } = req.nextUrl;
+
+    // Skip middleware checks for static files and API routes
+    if (
+        pathname.startsWith('/_next') ||
+        pathname.startsWith('/api') || // Skip authentication for all API routes
+        pathname.includes('.') ||
+        pathname === '/favicon.ico'
+    ) {
+        return NextResponse.next();
+    }
+
+    const isAuthRoute = authRoutes.includes(pathname);
+    const isPublicRoute = publicRoutes.includes(pathname);
+
+    // Retrieve the session to check authentication status
+    const session = await getServerSession();
+    const isLoggedIn = !!session;
+
+    // Handle authentication routes (e.g., login, signup)
+    if (isAuthRoute) {
+        return isLoggedIn
+            ? NextResponse.redirect(new URL(DEFAULT_LANDING_PAGE, origin))
+            : NextResponse.next();
+    }
+
+    // Protect non-public routes by redirecting unauthenticated users to the login page
+    if (!isLoggedIn && !isPublicRoute) {
+        const callbackUrl = search ? `${pathname}${search}` : pathname;
+        return NextResponse.redirect(
+            new URL(
+                `/login?callbackUrl=${encodeURIComponent(callbackUrl)}`,
+                origin,
+            ),
+        );
+    }
+
+    // Allow access if the route does not match any of the above conditions
+    return NextResponse.next();
+}
+
+// Proxy matcher configuration to specify applicable paths
+export const proxyConfig = {
+    matcher: ['/(api|trpc|.*)', '/', '/((?!.*\\..*|_next).*)'],
+};

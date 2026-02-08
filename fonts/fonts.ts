@@ -2,6 +2,21 @@
 import { NeueMontreal } from './localFonts';
 
 // Google fonts
-import { BebasNeue, Inter, Poppins, Roboto } from './googleFonts';
+import {
+    BebasNeue,
+    DMSerifDisplay,
+    Inter,
+    Outfit,
+    Poppins,
+    Roboto,
+} from './googleFonts';
 
-export { BebasNeue, Inter, NeueMontreal, Poppins, Roboto };
+export {
+    BebasNeue,
+    DMSerifDisplay,
+    Inter,
+    NeueMontreal,
+    Outfit,
+    Poppins,
+    Roboto,
+};

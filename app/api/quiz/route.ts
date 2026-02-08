@@ -1,87 +1,57 @@
-import { db } from '@/lib/mongo/client';
+import { Quiz } from '@/lib/models';
+import { connectToDatabase } from '@/lib/mongo/client';
+import {
+    createErrorResponse,
+    createSuccessResponse,
+    toNextResponse,
+} from '@/lib/utils/api-response';
 
 export async function GET(request: Request) {
     try {
         const url = new URL(request.url);
         const userId = url.searchParams.get('userId');
-        const page = parseInt(url.searchParams.get('page') ?? '1'); // Default to page 1
-        const limit = parseInt(url.searchParams.get('limit') ?? '10'); // Default to 10 items per page
+        const rawPage = Number.parseInt(url.searchParams.get('page') || '1', 10);
+        const rawLimit = Number.parseInt(
+            url.searchParams.get('limit') || '10',
+            10,
+        );
 
         if (!userId) {
-            return new Response(
-                JSON.stringify({ error: 'userId parameter is required' }),
-                {
-                    status: 400,
-                    headers: { 'Content-Type': 'application/json' },
-                },
+            return toNextResponse(
+                createErrorResponse('userId parameter is required.', 400),
             );
         }
 
-        if (isNaN(page) || page <= 0 || isNaN(limit) || limit <= 0) {
-            return new Response(
-                JSON.stringify({
-                    error: 'Invalid pagination parameters. Page and limit must be positive integers.',
-                }),
-                {
-                    status: 400,
-                    headers: { 'Content-Type': 'application/json' },
-                },
-            );
-        }
-
-        // Calculate the number of documents to skip based on the page and limit
+        const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+        const limit =
+            Number.isFinite(rawLimit) && rawLimit > 0
+                ? Math.min(rawLimit, 50)
+                : 10;
         const skip = (page - 1) * limit;
 
-        // Connect to the database and select the quizzes collection
-        const database = await db;
-        const collection = database.collection('quizzes');
+        await connectToDatabase();
 
-        // Fetch the total count of quizzes for this user
-        const totalQuizzes = await collection.countDocuments({ userId });
+        const [totalQuizzes, userQuizzes] = await Promise.all([
+            Quiz.countDocuments({ userId }),
+            Quiz.find({ userId }).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+        ]);
 
-        // Fetch the quizzes for the given userId, with pagination
-        const userQuizzes = await collection
-            .find({ userId })
-            .skip(skip)
-            .limit(limit)
-            .toArray();
-
-        // If no quizzes are found, return a 404 response
-        if (userQuizzes.length === 0) {
-            return new Response(
-                JSON.stringify({
-                    error: `No quizzes found for userId: ${userId} on page ${page}`,
-                }),
-                {
-                    status: 404,
-                    headers: { 'Content-Type': 'application/json' },
-                },
-            );
-        }
-
-        // Return the list of quizzes along with pagination details
-        return new Response(
-            JSON.stringify({
+        return toNextResponse(
+            createSuccessResponse('Quizzes fetched successfully.', {
                 quizzes: userQuizzes,
                 totalQuizzes,
                 currentPage: page,
                 totalPages: Math.ceil(totalQuizzes / limit),
             }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } },
         );
     } catch (error) {
-        let errorMessage = 'An unexpected error occurred';
-
-        // Check if error is an instance of Error and has a message
-        if (error instanceof Error) {
-            errorMessage = error.message;
-        }
-
-        return new Response(
-            JSON.stringify({
-                error: errorMessage,
-            }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } },
+        return toNextResponse(
+            createErrorResponse(
+                error instanceof Error
+                    ? error.message
+                    : 'An unexpected error occurred.',
+                500,
+            ),
         );
     }
 }

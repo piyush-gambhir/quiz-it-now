@@ -1,84 +1,99 @@
-import { db } from '@/lib/mongo/client';
+import { Quiz } from '@/lib/models';
+import { connectToDatabase } from '@/lib/mongo/client';
+import {
+    createErrorResponse,
+    createSuccessResponse,
+    toNextResponse,
+} from '@/lib/utils/api-response';
 
 export async function GET(
     request: Request,
-    { params }: { params: { quizId: string } },
+    { params }: { params: Promise<{ quizId: string }> },
 ) {
     try {
-        const { quizId } = params;
-        if (!quizId) {
-            return new Response(
-                JSON.stringify({ error: 'quizId parameter is required' }),
-                {
-                    status: 400,
-                    headers: { 'Content-Type': 'application/json' },
-                },
-            );
-        }
-
+        const { quizId } = await params;
         const { searchParams } = new URL(request.url);
         const userId = searchParams.get('userId');
 
-        // Connect to the database
-        const database = await db;
-        const collection = database.collection('quizzes'); // Use your collection name here
-
-        // Fetch the quiz from the MongoDB collection using the `quizId`
-        const response = await collection.findOne({
-            quizId: quizId,
-            userId: userId,
-        });
-
-        if (!response) {
-            return new Response(
-                JSON.stringify({
-                    success: false,
-                    statusCode: 404,
-                    message: `No quiz found with quizId: ${quizId}`,
-                    data: null,
-                    error: {
-                        code: 404,
-                        message: `No quiz found with quizId: ${quizId}`,
-                    },
-                }),
-                {
-                    status: 404,
-                    headers: { 'Content-Type': 'application/json' },
-                },
+        if (!quizId) {
+            return toNextResponse(
+                createErrorResponse('quizId parameter is required.', 400),
             );
         }
 
-        // Return the quiz data as a JSON response
-        return new Response(
-            JSON.stringify({
-                success: true,
-                statusCode: 200,
-                message: 'Quiz fetched successfully',
-                data: response,
-            }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } },
-        );
-    } catch (error) {
-        let errorMessage = 'Failed to fetch quiz';
-
-        // Ensure the error object is an instance of Error before accessing its message
-        if (error instanceof Error) {
-            errorMessage = error.message;
+        if (!userId) {
+            return toNextResponse(
+                createErrorResponse('userId parameter is required.', 400),
+            );
         }
 
-        // Handle any errors that occur during the process
-        return new Response(
-            JSON.stringify({
-                success: false,
-                statusCode: 500,
-                message: errorMessage,
-                data: null,
-                error: {
-                    code: 500,
-                    message: errorMessage,
-                },
+        await connectToDatabase();
+
+        const quiz = await Quiz.findOne({ quizId, userId }).lean();
+
+        if (!quiz) {
+            return toNextResponse(createErrorResponse('Quiz not found.', 404));
+        }
+
+        return toNextResponse(
+            createSuccessResponse('Quiz fetched successfully.', quiz),
+        );
+    } catch (error) {
+        return toNextResponse(
+            createErrorResponse(
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to fetch quiz.',
+                500,
+            ),
+        );
+    }
+}
+
+export async function DELETE(
+    request: Request,
+    { params }: { params: Promise<{ quizId: string }> },
+) {
+    try {
+        const { quizId } = await params;
+        const { searchParams } = new URL(request.url);
+        const userId = searchParams.get('userId');
+
+        if (!quizId) {
+            return toNextResponse(
+                createErrorResponse('quizId parameter is required.', 400),
+            );
+        }
+
+        if (!userId) {
+            return toNextResponse(
+                createErrorResponse('userId parameter is required.', 400),
+            );
+        }
+
+        await connectToDatabase();
+
+        const deleted = await Quiz.findOneAndDelete({ quizId, userId });
+
+        if (!deleted) {
+            return toNextResponse(
+                createErrorResponse('Quiz not found or already deleted.', 404),
+            );
+        }
+
+        return toNextResponse(
+            createSuccessResponse('Quiz deleted successfully.', {
+                quizId,
             }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } },
+        );
+    } catch (error) {
+        return toNextResponse(
+            createErrorResponse(
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to delete quiz.',
+                500,
+            ),
         );
     }
 }

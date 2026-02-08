@@ -1,15 +1,42 @@
-import { getQuizById } from '@/actions/quiz';
+import { auth } from '@/auth';
 
-import ViewQuizPage from '@/components/ViewQuizPage';
+import ViewQuizPage from '@/components/view-quiz-page';
+import { getRequestBaseUrl } from '@/lib/utils/request-url';
 
-export default async function page({
+export default async function Page({
     params,
 }: {
-    params: { quiz_id: string };
+    params: Promise<{ quiz_id: string }>;
 }) {
-    const { quiz_id } = params;
-    const quiz = await getQuizById({
-        quizId: quiz_id,
-    });
+    const session = await auth();
+    const { quiz_id } = await params;
+    const baseUrl = await getRequestBaseUrl();
+
+    if (!session?.user?.id) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <p>Please log in to view this quiz.</p>
+            </div>
+        );
+    }
+
+    const response = await fetch(
+        `${baseUrl}/api/quiz/${quiz_id}?userId=${session.user.id}`,
+        {
+            cache: 'no-store',
+        },
+    );
+
+    if (!response.ok) {
+        return (
+            <div className="flex items-center justify-center min-h-screen px-4">
+                <p>Unable to load this quiz right now.</p>
+            </div>
+        );
+    }
+
+    const data = await response.json();
+    const quiz = data?.data;
+
     return <ViewQuizPage quizData={quiz} />;
 }

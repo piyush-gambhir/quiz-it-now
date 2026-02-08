@@ -8,6 +8,14 @@ const nextConfig = {
             },
         ],
     },
+    // Package import optimizations for better performance
+    experimental: {
+        optimizePackageImports: [
+            'lucide-react',
+            '@radix-ui/react-icons',
+            'react-icons',
+        ],
+    },
 };
 
 export default nextConfig;

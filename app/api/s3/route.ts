@@ -42,6 +42,21 @@ function getS3Client(): S3Client {
     return s3Client;
 }
 
+function getPublicFileUrl(key: string) {
+    const customBaseUrl = env.S3_PUBLIC_BASE_URL;
+    if (customBaseUrl) {
+        return `${customBaseUrl.replace(/\/$/, '')}/${key}`;
+    }
+
+    if (!env.S3_BUCKET_NAME || !env.AWS_REGION) {
+        throw new Error(
+            'S3_BUCKET_NAME and AWS_REGION are required to build file URL.',
+        );
+    }
+
+    return `https://${env.S3_BUCKET_NAME}.s3.${env.AWS_REGION}.amazonaws.com/${key}`;
+}
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
         const { key, contentType } = await req.json();
@@ -60,7 +75,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             );
         }
 
-        // Optional: Validate the key format to prevent directory traversal
         if (key.includes('..')) {
             return NextResponse.json(
                 { error: 'Invalid "key" format.' },
@@ -78,7 +92,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             Key: key,
             Expires: 3600,
             Conditions: [
-                ['content-length-range', 0, 1048576],
+                ['content-length-range', 0, 25 * 1024 * 1024],
                 { 'Content-Type': contentType },
             ],
             Fields: {
@@ -86,21 +100,24 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             },
         };
 
-        console.log('Generating presigned POST with params:', params);
-
         const presignedPost: PresignedPost = await createPresignedPost(
             getS3Client(),
             params,
         );
 
-        console.log('Presigned POST generated:', presignedPost);
-
-        return NextResponse.json(presignedPost);
-    } catch (error: any) {
-        console.error('Error in presigned POST generation:', error);
-
+        return NextResponse.json({
+            ...presignedPost,
+            key,
+            fileUrl: getPublicFileUrl(key),
+        });
+    } catch (error: unknown) {
         return NextResponse.json(
-            { error: 'Failed to generate presigned URL.' },
+            {
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : 'Failed to generate presigned URL.',
+            },
             { status: 500 },
         );
     }

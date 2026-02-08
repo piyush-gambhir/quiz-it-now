@@ -2,7 +2,15 @@
  * An array of routes that are accessible to the public
  * These routes do not require authentication
  */
-export const publicRoutes: string[] = ['/'];
+export const publicRoutes: string[] = [
+    '/',
+    '/privacy-policy',
+    '/terms-of-service',
+    '/cookie-policy',
+    '/about',
+    '/contact-us',
+    '/quiz/generate',
+];
 
 /**
  * An array of routes that are used for authentication
