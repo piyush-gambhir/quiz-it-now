@@ -2,6 +2,8 @@
 const nextConfig = {
     poweredByHeader: false,
     reactStrictMode: true,
+    // pdf-parse bundles pdfjs-dist and a native canvas; keep it out of the bundle.
+    serverExternalPackages: ['pdf-parse'],
     images: {
         remotePatterns: [
             {

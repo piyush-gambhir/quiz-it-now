@@ -1,6 +1,6 @@
 import { generateObject } from 'ai';
 import { load } from 'cheerio';
-import pdfParse from 'pdf-parse';
+import { PDFParse } from 'pdf-parse';
 import { YoutubeTranscript } from 'youtube-transcript';
 import { z } from 'zod';
 
@@ -112,8 +112,13 @@ async function extractTextFromPdfUrl(url: string) {
     }
 
     const buffer = Buffer.from(await response.arrayBuffer());
-    const parsed = await pdfParse(buffer);
-    return normalizeText(parsed.text || '');
+    const parser = new PDFParse({ data: buffer });
+    try {
+        const parsed = await parser.getText({ pageJoiner: '' });
+        return normalizeText(parsed.text || '');
+    } finally {
+        await parser.destroy();
+    }
 }
 
 async function extractTextFromFile(fileInput: QuizFileInput) {
