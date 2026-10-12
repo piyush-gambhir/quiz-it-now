@@ -2,6 +2,6 @@ packages:
   - "."
 allowBuilds:
   "@tailwindcss/oxide": true
-  "@tsparticles/engine": true
+  "@tsparticles/engine": false
   sharp: true
   unrs-resolver: true
