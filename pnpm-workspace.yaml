@@ -1,10 +1,7 @@
 packages:
   - "."
-onlyBuiltDependencies:
-    - '@prisma/client'
-    - '@prisma/engines'
-    - '@tailwindcss/oxide'
-    - '@tsparticles/engine'
-    - prisma
-    - sharp
-    - unrs-resolver
+allowBuilds:
+  "@tailwindcss/oxide": true
+  "@tsparticles/engine": true
+  sharp: true
+  unrs-resolver: true

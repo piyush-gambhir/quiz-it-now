@@ -2,6 +2,7 @@
     "name": "quiz-master-web",
     "version": "0.1.0",
     "private": true,
+    "packageManager": "pnpm@12.11.2",
     "scripts": {
         "dev": "cross-env NODE_ENV=development next dev --turbopack",
         "build": "cross-env next build --turbopack",
@@ -95,7 +96,7 @@
         "@tailwindcss/postcss": "^4.1.18",
         "@trivago/prettier-plugin-sort-imports": "^6.0.2",
         "@types/canvas-confetti": "^1.9.0",
-        "@types/node": "^25.2.2",
+        "@types/node": "^24.19.2",
         "@types/pdf-parse": "^1.1.5",
         "@types/react": "^19.2.13",
         "@types/react-dom": "^19.2.3",
