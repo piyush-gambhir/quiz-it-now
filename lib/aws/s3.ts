@@ -1,5 +1,9 @@
 import { env } from '@/env';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import {
+    PutObjectCommand,
+    S3Client,
+    type PutObjectCommandOutput,
+} from '@aws-sdk/client-s3';
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
@@ -101,7 +105,7 @@ export const uploadToS3 = async ({
     bucketName: string;
     key: string;
     body: Uint8Array;
-}): Promise<any> => {
+}): Promise<PutObjectCommandOutput> => {
     const command = new PutObjectCommand({
         Bucket: bucketName,
         Key: key,

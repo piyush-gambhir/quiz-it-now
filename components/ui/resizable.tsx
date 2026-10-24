@@ -1,12 +1,15 @@
-'use client';
+import type { ComponentProps } from 'react';
+('use client');
 
 import { DragHandleDots2Icon } from '@radix-ui/react-icons';
 
 import { cn } from '@/lib/utils';
 
-// Stub implementation - react-resizable-panels v4.6.2 has typing issues
-// If you need to use this component, consider updating the package or using direct imports
-const ResizablePanelGroup = ({ className, children, ...props }: any) => (
+const ResizablePanelGroup = ({
+    className,
+    children,
+    ...props
+}: ComponentProps<'div'>) => (
     <div
         className={cn(
             'flex h-full w-full data-[panel-group-direction=vertical]:flex-col',
@@ -18,13 +21,21 @@ const ResizablePanelGroup = ({ className, children, ...props }: any) => (
     </div>
 );
 
-const ResizablePanel = ({ className, children, ...props }: any) => (
+const ResizablePanel = ({
+    className,
+    children,
+    ...props
+}: ComponentProps<'div'>) => (
     <div className={cn('', className)} {...props}>
         {children}
     </div>
 );
 
-const ResizableHandle = ({ withHandle, className, ...props }: any) => (
+const ResizableHandle = ({
+    withHandle,
+    className,
+    ...props
+}: ComponentProps<'div'> & { withHandle?: boolean }) => (
     <div
         className={cn(
             'relative flex w-px items-center justify-center bg-border',

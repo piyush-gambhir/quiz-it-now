@@ -24,7 +24,7 @@ export interface IQuiz extends Document {
     quizId: string;
     userId: string;
     input: {
-        data: any;
+        data: unknown;
         type: string;
     };
     aiModel: string;

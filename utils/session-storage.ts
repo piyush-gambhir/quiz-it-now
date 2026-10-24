@@ -6,7 +6,7 @@ export const getSessionStorageData = (key: string) => {
     return null;
 };
 
-export const setSessionStorageData = (key: string, data: any) => {
+export const setSessionStorageData = (key: string, data: unknown) => {
     if (typeof window !== 'undefined' && window.sessionStorage) {
         sessionStorage.setItem(key, JSON.stringify(data));
     }
