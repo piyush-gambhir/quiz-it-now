@@ -22,6 +22,7 @@ const nextConfig = {
     },
     // Package import optimizations for better performance
     experimental: {
+    agentUpgrade: 'security',
         optimizePackageImports: [
             'lucide-react',
             '@radix-ui/react-icons',
