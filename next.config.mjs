@@ -1,5 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    env: {
+        NEXT_PUBLIC_APP_URL:
+            process.env.NEXT_PUBLIC_APP_URL ||
+            (process.env.VERCEL_URL
+                ? `https://${process.env.VERCEL_URL}`
+                : undefined),
+    },
     poweredByHeader: false,
     reactStrictMode: true,
     // pdf-parse bundles pdfjs-dist and a native canvas; keep it out of the bundle.
@@ -22,6 +29,7 @@ const nextConfig = {
     },
     // Package import optimizations for better performance
     experimental: {
+        agentUpgrade: 'security',
         optimizePackageImports: [
             'lucide-react',
             '@radix-ui/react-icons',

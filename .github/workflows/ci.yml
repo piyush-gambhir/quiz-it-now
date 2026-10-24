@@ -1,37 +1,38 @@
 name: CI
 
 on:
-  push:
-    branches: [release]
-  pull_request:
-    branches: [release]
+    push:
+        branches: [release]
+    pull_request:
+        branches: [release]
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-  check:
-    name: Lint, Typecheck & Build
-    runs-on: ubuntu-24.04-arm
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
+    check:
+        name: Lint, Typecheck & Build
+        runs-on: ubuntu-24.04-arm
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v6
-        with:
-          version: 12.11.2
+            - uses: pnpm/action-setup@v6
+              with:
+                  version: 12.11.2
 
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: pnpm
+            - uses: actions/setup-node@v7
+              with:
+                  node-version: '24.22.1'
+                  cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
-      - name: Lint
-        run: pnpm run lint
-        continue-on-error: true
-      - run: pnpm run typecheck
-      - run: pnpm run build
-        env:
-          NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+            - run: pnpm install --frozen-lockfile
+            - name: Lint
+              run: pnpm run lint
+            - run: pnpm run typecheck
+            - name: Public deployment URL configuration
+              run: node --test tests/app-url.test.mjs
+            - run: pnpm run build
+              env:
+                  NEXT_PUBLIC_APP_URL: 'http://localhost:3000'

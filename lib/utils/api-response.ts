@@ -1,4 +1,4 @@
-interface ApiResponse<T = any> {
+interface ApiResponse<T = unknown> {
     success: boolean;
     statusCode: number;
     message: string;
@@ -10,7 +10,7 @@ interface ApiResponse<T = any> {
     timestamp: string;
 }
 
-export function createApiResponse<T = any>(
+export function createApiResponse<T = unknown>(
     statusCode: number,
     message: string,
     data: T | null = null,
@@ -29,7 +29,7 @@ export function createApiResponse<T = any>(
     };
 }
 
-export function createSuccessResponse<T = any>(
+export function createSuccessResponse<T = unknown>(
     message: string,
     data: T | null = null,
     statusCode: number = 200,
@@ -44,7 +44,9 @@ export function createErrorResponse(
     return createApiResponse(statusCode, message, null, false);
 }
 
-export function toNextResponse<T = any>(apiResponse: ApiResponse<T>): Response {
+export function toNextResponse<T = unknown>(
+    apiResponse: ApiResponse<T>,
+): Response {
     return new Response(JSON.stringify(apiResponse), {
         status: apiResponse.statusCode,
         headers: { 'Content-Type': 'application/json' },

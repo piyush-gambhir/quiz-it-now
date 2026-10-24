@@ -19,7 +19,9 @@ export const Cover = ({
     const ref = useRef<HTMLDivElement>(null);
 
     const [containerWidth, setContainerWidth] = useState(0);
-    const [beamPositions, setBeamPositions] = useState<number[]>([]);
+    const [beamPositions, setBeamPositions] = useState<
+        { top: number; duration: number; delay: number }[]
+    >([]);
 
     useEffect(() => {
         if (ref.current) {
@@ -27,10 +29,11 @@ export const Cover = ({
 
             const height = ref.current?.clientHeight ?? 0;
             const numberOfBeams = Math.floor(height / 10); // Adjust the divisor to control the spacing
-            const positions = Array.from(
-                { length: numberOfBeams },
-                (_, i) => (i + 1) * (height / (numberOfBeams + 1)),
-            );
+            const positions = Array.from({ length: numberOfBeams }, (_, i) => ({
+                top: (i + 1) * (height / (numberOfBeams + 1)),
+                duration: Math.random() * 2 + 1,
+                delay: Math.random() * 2 + 1,
+            }));
             setBeamPositions(positions);
         }
     }, []);
@@ -92,11 +95,11 @@ export const Cover = ({
                 <Beam
                     key={index}
                     hovered={hovered}
-                    duration={Math.random() * 2 + 1}
-                    delay={Math.random() * 2 + 1}
+                    duration={position.duration}
+                    delay={position.delay}
                     width={containerWidth}
                     style={{
-                        top: `${position}px`,
+                        top: `${position.top}px`,
                     }}
                 />
             ))}
@@ -171,6 +174,10 @@ export const Beam = ({
     width?: number;
 } & React.ComponentProps<typeof motion.svg>) => {
     const id = useId();
+    const [hoverTiming] = useState(() => ({
+        delay: Math.random() * 0.8 + 0.2,
+        repeatDelay: Math.random() + 1,
+    }));
 
     return (
         <motion.svg
@@ -208,9 +215,9 @@ export const Beam = ({
                         duration: hovered ? 0.5 : (duration ?? 2),
                         ease: 'linear',
                         repeat: Infinity,
-                        delay: hovered ? Math.random() * (1 - 0.2) + 0.2 : 0,
+                        delay: hovered ? hoverTiming.delay : 0,
                         repeatDelay: hovered
-                            ? Math.random() * (2 - 1) + 1
+                            ? hoverTiming.repeatDelay
                             : (delay ?? 1),
                     }}
                 >
