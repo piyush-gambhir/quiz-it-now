@@ -12,27 +12,33 @@ concurrency:
 
 jobs:
     check:
-        name: Lint, Typecheck & Build
+        name: Node ${{ matrix.node }}
         runs-on: ubuntu-24.04-arm
         timeout-minutes: 10
+        strategy:
+            matrix:
+                node: ['24.22.1', '26.12.1']
         steps:
             - uses: actions/checkout@v7
 
             - uses: pnpm/action-setup@v6
               with:
-                  version: 12.11.2
+                  version: 12.15.0
 
             - uses: actions/setup-node@v7
               with:
-                  node-version: '24.22.1'
+                  node-version: ${{ matrix.node }}
                   cache: pnpm
 
             - run: pnpm install --frozen-lockfile
             - name: Lint
               run: pnpm run lint
             - run: pnpm run typecheck
+            - run: pnpm run typecheck:compat
             - name: Public deployment URL configuration
               run: node --test tests/app-url.test.mjs
             - run: pnpm run build
               env:
                   NEXT_PUBLIC_APP_URL: 'http://localhost:3000'
+            - name: Verify deployed PDF runtime files
+              run: node scripts/check-pdf-trace.mjs
