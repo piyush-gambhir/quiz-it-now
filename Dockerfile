@@ -1,8 +1,8 @@
 # Dockerfile.production
-FROM node:24.22.1-alpine
+FROM node:26.12.1-alpine
 
 # Install pnpm via corepack
-RUN corepack enable && corepack prepare pnpm@12.11.2 --activate
+RUN npm install --global --allow-scripts=pnpm pnpm@12.15.0
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -11,7 +11,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Install dependencies using pnpm
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
 # Copy the rest of the application code
 COPY . .
