@@ -17,6 +17,14 @@ for (const route of ['quiz/generate', 'quiz/generate/ai']) {
         `${route}: missing native canvas binary`,
     );
     assert(
+        trace.files.some(
+            (file) =>
+                file.includes('/pdfjs-dist@') &&
+                file.endsWith('/node_modules/@napi-rs/canvas'),
+        ),
+        `${route}: missing pdfjs canvas resolution link`,
+    );
+    assert(
         trace.files.some((file) => file.endsWith('/pdf.worker.mjs')),
         `${route}: missing PDF worker`,
     );
