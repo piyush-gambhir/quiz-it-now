@@ -2,3 +2,7 @@ node_modules
 build
 .next
 .git
+
+.env*
+!.env.example
+!.env.deploy.example
