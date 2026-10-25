@@ -35,7 +35,10 @@ No live NVIDIA/OpenAI generation, OAuth exchange, AWS upload, audio transcriptio
 
 ## Containers and deployment boundary
 
-The Dockerfile pins Node 26.12.1, explicitly installs pnpm with its required install script enabled, and uses frozen installation. Environment files are excluded from build context. `NEXT_PUBLIC_APP_URL` is a public build argument with a localhost default; set it to the deployed origin when building. Container execution was not verified in this pass.
+The Dockerfile pins Node 26.12.1, explicitly installs pnpm with its required install script enabled, and uses frozen installation. Environment files are excluded from build context. `NEXT_PUBLIC_APP_URL` is a public build argument with a localhost default; set it to the deployed origin when building. The rebuilt Linux arm64 image runs Node 26.12.1 and passes the same browser
+validation and authentication-gate checks at a disposable localhost origin.
+Its environment contains only disposable local authentication values; no
+provider, database or OAuth credentials are supplied.
 
 CI runs on release branch pushes and pull requests. The deployment workflow remains manual-only and was not invoked. Its pnpm version is aligned, but its Node 24 runtime and triggers remain unchanged. A separate Vercel Git integration may react to a future push; that connection was not inspected. No push, PR, tag, release, deployment, provider setup, or global configuration change was performed.
 
