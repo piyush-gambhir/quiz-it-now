@@ -40,3 +40,5 @@ jobs:
             - run: pnpm run build
               env:
                   NEXT_PUBLIC_APP_URL: 'http://localhost:3000'
+            - name: Verify deployed PDF runtime files
+              run: node scripts/check-pdf-trace.mjs

@@ -43,3 +43,7 @@ provider, database or OAuth credentials are supplied.
 CI runs on release branch pushes and pull requests. The deployment workflow remains manual-only and was not invoked. Its pnpm version is aligned, but its Node 24 runtime and triggers remain unchanged. A separate Vercel Git integration may react to a future push; that connection was not inspected. No push, PR, tag, release, deployment, provider setup, or global configuration change was performed.
 
 The measured outcome is current compatible dependencies and verified support for both hosting and development runtimes, plus an explicit native compiler path. Upstream already had a zero-advisory baseline, which is preserved.
+
+## Hosted PDF runtime packaging
+
+A real Vercel preview request exposed a startup error that local Docker checks did not catch: output tracing omitted the native canvas dependency loaded dynamically by pdfjs. The quiz API failed before input validation with `DOMMatrix is not defined`. Both quiz-generation route traces now explicitly include the canvas loader/native binary and the PDF worker. CI checks the emitted deployment file lists after each runtime build to catch this packaging regression. Hosted verification is required before production promotion.

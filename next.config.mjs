@@ -11,6 +11,13 @@ const nextConfig = {
     reactStrictMode: true,
     // pdf-parse bundles pdfjs-dist and a native canvas; keep it out of the bundle.
     serverExternalPackages: ['pdf-parse'],
+    // pdfjs loads canvas through createRequire, which static tracing misses.
+    outputFileTracingIncludes: {
+        '/api/quiz/generate{,/**}': [
+            './node_modules/.pnpm/@napi-rs+canvas*/node_modules/@napi-rs/**/*',
+            './node_modules/.pnpm/pdfjs-dist@*/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
+        ],
+    },
     images: {
         remotePatterns: [
             {
