@@ -117,6 +117,6 @@
         "**/*": "prettier --write --ignore-unknown"
     },
     "engines": {
-        "node": ">=24.22.1 <25 || >=26.12.1 <27"
+        "node": "26.x"
     }
 }
