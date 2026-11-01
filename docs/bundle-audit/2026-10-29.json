@@ -1,0 +1,805 @@
+{
+    "date": "2026-10-29",
+    "repository": "piyush-gambhir/quiz-it-now",
+    "base": "release",
+    "base_sha": "c36af8a44a267b0414148a2a0a3582291886322b",
+    "mode": "audit",
+    "publication_blocker": null,
+    "apps": [
+        {
+            "path": ".",
+            "declared_next": "16.4.3",
+            "installed_next": "16.4.3",
+            "snapshot": "audit-20261029-baseline",
+            "graph_sha256": "2f8da918a15c666a6eb9d60a369f2411e6e64c0c6df37355d20ef423572906b5",
+            "error": null,
+            "analysis": {
+                "meta": {
+                    "type": "meta",
+                    "schema_version": 1,
+                    "snapshot_name": "audit-20261029-baseline",
+                    "module_index_hash": "4bb020f515d59564",
+                    "route_count": 25,
+                    "selected_routes": 25
+                },
+                "record_counts": {
+                    "meta": 1,
+                    "module": 4047,
+                    "route": 25,
+                    "output": 7146,
+                    "part": 22439,
+                    "group": 346
+                },
+                "metric": "Sum of attributed compressed bytes for JavaScript outputs with [client-fs] provenance; includes deferred outputs and is not measured transfer or initial-load size.",
+                "unique_client_js_compressed_attribution": 399441,
+                "route_stats": [
+                    {
+                        "route": "/quiz/[quiz_id]",
+                        "client_js_compressed_attribution": 364901,
+                        "bootstrap_js_compressed_attribution": 164651,
+                        "client_js_files": 16,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/quiz/generate",
+                        "client_js_compressed_attribution": 306246,
+                        "bootstrap_js_compressed_attribution": 164651,
+                        "client_js_files": 16,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/quiz",
+                        "client_js_compressed_attribution": 295491,
+                        "bootstrap_js_compressed_attribution": 164651,
+                        "client_js_files": 15,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/",
+                        "client_js_compressed_attribution": 294074,
+                        "bootstrap_js_compressed_attribution": 164651,
+                        "client_js_files": 15,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/quiz/view/[quiz_id]",
+                        "client_js_compressed_attribution": 291938,
+                        "bootstrap_js_compressed_attribution": 164651,
+                        "client_js_files": 15,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/login",
+                        "client_js_compressed_attribution": 291435,
+                        "bootstrap_js_compressed_attribution": 164651,
+                        "client_js_files": 15,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/register",
+                        "client_js_compressed_attribution": 291435,
+                        "bootstrap_js_compressed_attribution": 164651,
+                        "client_js_files": 15,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/logout",
+                        "client_js_compressed_attribution": 289686,
+                        "bootstrap_js_compressed_attribution": 164651,
+                        "client_js_files": 15,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/contact-us",
+                        "client_js_compressed_attribution": 289566,
+                        "bootstrap_js_compressed_attribution": 164651,
+                        "client_js_files": 15,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/_not-found",
+                        "client_js_compressed_attribution": 289128,
+                        "bootstrap_js_compressed_attribution": 164651,
+                        "client_js_files": 14,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/about",
+                        "client_js_compressed_attribution": 289128,
+                        "bootstrap_js_compressed_attribution": 164651,
+                        "client_js_files": 14,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/cookie-policy",
+                        "client_js_compressed_attribution": 289128,
+                        "bootstrap_js_compressed_attribution": 164651,
+                        "client_js_files": 14,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/privacy-policy",
+                        "client_js_compressed_attribution": 289128,
+                        "bootstrap_js_compressed_attribution": 164651,
+                        "client_js_files": 14,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/settings",
+                        "client_js_compressed_attribution": 289128,
+                        "bootstrap_js_compressed_attribution": 164651,
+                        "client_js_files": 14,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/terms-of-service",
+                        "client_js_compressed_attribution": 289128,
+                        "bootstrap_js_compressed_attribution": 164651,
+                        "client_js_files": 14,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/api/auth/[...nextauth]",
+                        "client_js_compressed_attribution": 0,
+                        "bootstrap_js_compressed_attribution": 0,
+                        "client_js_files": 0,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/api/quiz/[quizId]",
+                        "client_js_compressed_attribution": 0,
+                        "bootstrap_js_compressed_attribution": 0,
+                        "client_js_files": 0,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/api/audio/transcribe",
+                        "client_js_compressed_attribution": 0,
+                        "bootstrap_js_compressed_attribution": 0,
+                        "client_js_files": 0,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/api/models",
+                        "client_js_compressed_attribution": 0,
+                        "bootstrap_js_compressed_attribution": 0,
+                        "client_js_files": 0,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/api/quiz",
+                        "client_js_compressed_attribution": 0,
+                        "bootstrap_js_compressed_attribution": 0,
+                        "client_js_files": 0,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/api/quiz/generate",
+                        "client_js_compressed_attribution": 0,
+                        "bootstrap_js_compressed_attribution": 0,
+                        "client_js_files": 0,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/api/quiz/generate/ai",
+                        "client_js_compressed_attribution": 0,
+                        "bootstrap_js_compressed_attribution": 0,
+                        "client_js_files": 0,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/api/s3",
+                        "client_js_compressed_attribution": 0,
+                        "bootstrap_js_compressed_attribution": 0,
+                        "client_js_files": 0,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/api/users",
+                        "client_js_compressed_attribution": 0,
+                        "bootstrap_js_compressed_attribution": 0,
+                        "client_js_files": 0,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    },
+                    {
+                        "route": "/favicon.ico",
+                        "client_js_compressed_attribution": 0,
+                        "bootstrap_js_compressed_attribution": 0,
+                        "client_js_files": 0,
+                        "entries_coverage": "exact",
+                        "groups_coverage": "exact"
+                    }
+                ],
+                "top_sources": [
+                    {
+                        "source": "node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.production.js",
+                        "compressed_attribution": 63931,
+                        "routes": [
+                            "/",
+                            "/_not-found",
+                            "/about",
+                            "/contact-us",
+                            "/cookie-policy",
+                            "/login",
+                            "/logout",
+                            "/privacy-policy",
+                            "/quiz",
+                            "/quiz/[quiz_id]",
+                            "/quiz/generate",
+                            "/quiz/view/[quiz_id]",
+                            "/register",
+                            "/settings",
+                            "/terms-of-service"
+                        ]
+                    },
+                    {
+                        "source": "node_modules/next/dist/build/polyfills/polyfill-nomodule.js",
+                        "compressed_attribution": 39434,
+                        "routes": [
+                            "/",
+                            "/_not-found",
+                            "/about",
+                            "/contact-us",
+                            "/cookie-policy",
+                            "/login",
+                            "/logout",
+                            "/privacy-policy",
+                            "/quiz",
+                            "/quiz/[quiz_id]",
+                            "/quiz/generate",
+                            "/quiz/view/[quiz_id]",
+                            "/register",
+                            "/settings",
+                            "/terms-of-service"
+                        ]
+                    },
+                    {
+                        "source": "node_modules/tailwind-merge/dist/bundle-mjs.mjs",
+                        "compressed_attribution": 8416,
+                        "routes": [
+                            "/",
+                            "/_not-found",
+                            "/about",
+                            "/contact-us",
+                            "/cookie-policy",
+                            "/login",
+                            "/logout",
+                            "/privacy-policy",
+                            "/quiz",
+                            "/quiz/[quiz_id]",
+                            "/quiz/generate",
+                            "/quiz/view/[quiz_id]",
+                            "/register",
+                            "/settings",
+                            "/terms-of-service"
+                        ]
+                    },
+                    {
+                        "source": "node_modules/next/dist/compiled/react-server-dom-turbopack/cjs/react-server-dom-turbopack-client.browser.production.js",
+                        "compressed_attribution": 7773,
+                        "routes": [
+                            "/",
+                            "/_not-found",
+                            "/about",
+                            "/contact-us",
+                            "/cookie-policy",
+                            "/login",
+                            "/logout",
+                            "/privacy-policy",
+                            "/quiz",
+                            "/quiz/[quiz_id]",
+                            "/quiz/generate",
+                            "/quiz/view/[quiz_id]",
+                            "/register",
+                            "/settings",
+                            "/terms-of-service"
+                        ]
+                    },
+                    {
+                        "source": "node_modules/@radix-ui/react-select/dist/index.mjs",
+                        "compressed_attribution": 6639,
+                        "routes": ["/quiz/generate"]
+                    },
+                    {
+                        "source": "node_modules/motion-dom/dist/es/projection/node/create-projection-node.mjs",
+                        "compressed_attribution": 6456,
+                        "routes": ["/quiz/[quiz_id]"]
+                    },
+                    {
+                        "source": "node_modules/next/dist/client/components/segment-cache/cache.js",
+                        "compressed_attribution": 6404,
+                        "routes": [
+                            "/",
+                            "/_not-found",
+                            "/about",
+                            "/contact-us",
+                            "/cookie-policy",
+                            "/login",
+                            "/logout",
+                            "/privacy-policy",
+                            "/quiz",
+                            "/quiz/[quiz_id]",
+                            "/quiz/generate",
+                            "/quiz/view/[quiz_id]",
+                            "/register",
+                            "/settings",
+                            "/terms-of-service"
+                        ]
+                    },
+                    {
+                        "source": "node_modules/@radix-ui/react-menu/dist/index.mjs",
+                        "compressed_attribution": 4374,
+                        "routes": [
+                            "/",
+                            "/_not-found",
+                            "/about",
+                            "/contact-us",
+                            "/cookie-policy",
+                            "/login",
+                            "/logout",
+                            "/privacy-policy",
+                            "/quiz",
+                            "/quiz/[quiz_id]",
+                            "/quiz/generate",
+                            "/quiz/view/[quiz_id]",
+                            "/register",
+                            "/settings",
+                            "/terms-of-service"
+                        ]
+                    },
+                    {
+                        "source": "components/quiz-generator-page.tsx",
+                        "compressed_attribution": 4224,
+                        "routes": ["/quiz/generate"]
+                    },
+                    {
+                        "source": "node_modules/next/dist/client/components/render-tree.js",
+                        "compressed_attribution": 3998,
+                        "routes": [
+                            "/",
+                            "/_not-found",
+                            "/about",
+                            "/contact-us",
+                            "/cookie-policy",
+                            "/login",
+                            "/logout",
+                            "/privacy-policy",
+                            "/quiz",
+                            "/quiz/[quiz_id]",
+                            "/quiz/generate",
+                            "/quiz/view/[quiz_id]",
+                            "/register",
+                            "/settings",
+                            "/terms-of-service"
+                        ]
+                    },
+                    {
+                        "source": "node_modules/@radix-ui/react-toast/dist/index.mjs",
+                        "compressed_attribution": 3974,
+                        "routes": [
+                            "/",
+                            "/_not-found",
+                            "/about",
+                            "/contact-us",
+                            "/cookie-policy",
+                            "/login",
+                            "/logout",
+                            "/privacy-policy",
+                            "/quiz",
+                            "/quiz/[quiz_id]",
+                            "/quiz/generate",
+                            "/quiz/view/[quiz_id]",
+                            "/register",
+                            "/settings",
+                            "/terms-of-service"
+                        ]
+                    },
+                    {
+                        "source": "node_modules/next/dist/client/components/segment-cache/scheduler.js",
+                        "compressed_attribution": 3968,
+                        "routes": [
+                            "/",
+                            "/_not-found",
+                            "/about",
+                            "/contact-us",
+                            "/cookie-policy",
+                            "/login",
+                            "/logout",
+                            "/privacy-policy",
+                            "/quiz",
+                            "/quiz/[quiz_id]",
+                            "/quiz/generate",
+                            "/quiz/view/[quiz_id]",
+                            "/register",
+                            "/settings",
+                            "/terms-of-service"
+                        ]
+                    },
+                    {
+                        "source": "node_modules/motion-dom/dist/es/animation/waapi/transforms/TransformAnimation.mjs",
+                        "compressed_attribution": 3461,
+                        "routes": ["/quiz/[quiz_id]"]
+                    },
+                    {
+                        "source": "node_modules/@floating-ui/core/dist/floating-ui.core.mjs",
+                        "compressed_attribution": 3105,
+                        "routes": [
+                            "/",
+                            "/_not-found",
+                            "/about",
+                            "/contact-us",
+                            "/cookie-policy",
+                            "/login",
+                            "/logout",
+                            "/privacy-policy",
+                            "/quiz",
+                            "/quiz/[quiz_id]",
+                            "/quiz/generate",
+                            "/quiz/view/[quiz_id]",
+                            "/register",
+                            "/settings",
+                            "/terms-of-service"
+                        ]
+                    },
+                    {
+                        "source": "node_modules/next/dist/compiled/react/cjs/react.production.js",
+                        "compressed_attribution": 2971,
+                        "routes": [
+                            "/",
+                            "/_not-found",
+                            "/about",
+                            "/contact-us",
+                            "/cookie-policy",
+                            "/login",
+                            "/logout",
+                            "/privacy-policy",
+                            "/quiz",
+                            "/quiz/[quiz_id]",
+                            "/quiz/generate",
+                            "/quiz/view/[quiz_id]",
+                            "/register",
+                            "/settings",
+                            "/terms-of-service"
+                        ]
+                    },
+                    {
+                        "source": "node_modules/@radix-ui/react-collection/dist/index.mjs",
+                        "compressed_attribution": 2970,
+                        "routes": [
+                            "/",
+                            "/_not-found",
+                            "/about",
+                            "/contact-us",
+                            "/cookie-policy",
+                            "/login",
+                            "/logout",
+                            "/privacy-policy",
+                            "/quiz",
+                            "/quiz/[quiz_id]",
+                            "/quiz/generate",
+                            "/quiz/view/[quiz_id]",
+                            "/register",
+                            "/settings",
+                            "/terms-of-service"
+                        ]
+                    },
+                    {
+                        "source": "node_modules/@radix-ui/react-tooltip/dist/index.mjs",
+                        "compressed_attribution": 2962,
+                        "routes": [
+                            "/",
+                            "/_not-found",
+                            "/about",
+                            "/contact-us",
+                            "/cookie-policy",
+                            "/login",
+                            "/logout",
+                            "/privacy-policy",
+                            "/quiz",
+                            "/quiz/[quiz_id]",
+                            "/quiz/generate",
+                            "/quiz/view/[quiz_id]",
+                            "/register",
+                            "/settings",
+                            "/terms-of-service"
+                        ]
+                    },
+                    {
+                        "source": "node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs",
+                        "compressed_attribution": 2902,
+                        "routes": [
+                            "/",
+                            "/_not-found",
+                            "/about",
+                            "/contact-us",
+                            "/cookie-policy",
+                            "/login",
+                            "/logout",
+                            "/privacy-policy",
+                            "/quiz",
+                            "/quiz/[quiz_id]",
+                            "/quiz/generate",
+                            "/quiz/view/[quiz_id]",
+                            "/register",
+                            "/settings",
+                            "/terms-of-service"
+                        ]
+                    },
+                    {
+                        "source": "components/take-quiz-page.tsx",
+                        "compressed_attribution": 2691,
+                        "routes": ["/quiz/[quiz_id]"]
+                    },
+                    {
+                        "source": "components/quizzes-page.tsx",
+                        "compressed_attribution": 2529,
+                        "routes": ["/quiz"]
+                    }
+                ],
+                "top_packages": [
+                    ["next", 208965],
+                    ["motion-dom", 51755],
+                    ["(application)", 35613],
+                    ["framer-motion", 11115],
+                    ["lucide-react", 10407],
+                    ["tailwind-merge", 8416],
+                    ["@radix-ui/react-select", 6639],
+                    ["@radix-ui/react-menu", 4374],
+                    ["@radix-ui/react-toast", 3974],
+                    ["@floating-ui/core", 3105],
+                    ["@radix-ui/react-collection", 2970],
+                    ["@radix-ui/react-tooltip", 2962],
+                    ["@floating-ui/dom", 2902],
+                    ["react-remove-scroll", 2584],
+                    ["next-auth", 2368]
+                ],
+                "duplicate_browser_versions": {},
+                "graph": {
+                    "emitted_members": 218,
+                    "sync_edges": 687,
+                    "async_edges": 0,
+                    "communities": 6,
+                    "parameters": "NetworkX Louvain, resolution=1, weight=1 per distinct directed edge/kind before symmetrization, seed=0; seed=1 stability comparison.",
+                    "stable_partition_across_seeds": false,
+                    "ranked_communities": [
+                        {
+                            "community": 1,
+                            "modules": 29,
+                            "unambiguous_compressed_attribution": 87139,
+                            "largest_packages": [
+                                ["next", 67727],
+                                ["@radix-ui/react-collection", 2970],
+                                ["@radix-ui/react-dismissable-layer", 1953],
+                                ["@radix-ui/react-dialog", 1951]
+                            ]
+                        },
+                        {
+                            "community": 4,
+                            "modules": 34,
+                            "unambiguous_compressed_attribution": 36433,
+                            "largest_packages": [["next", 36433]]
+                        },
+                        {
+                            "community": 2,
+                            "modules": 69,
+                            "unambiguous_compressed_attribution": 31749,
+                            "largest_packages": [
+                                ["next", 31352],
+                                ["@swc/helpers", 397]
+                            ]
+                        },
+                        {
+                            "community": 3,
+                            "modules": 42,
+                            "unambiguous_compressed_attribution": 31671,
+                            "largest_packages": [
+                                ["(application)", 20543],
+                                ["next", 3735],
+                                ["lucide-react", 2941],
+                                ["next-auth", 1781]
+                            ]
+                        },
+                        {
+                            "community": 5,
+                            "modules": 27,
+                            "unambiguous_compressed_attribution": 23622,
+                            "largest_packages": [["next", 23622]]
+                        },
+                        {
+                            "community": 0,
+                            "modules": 17,
+                            "unambiguous_compressed_attribution": 6662,
+                            "largest_packages": [["next", 6662]]
+                        }
+                    ],
+                    "unmapped_or_ambiguous_compressed_attribution": 182165
+                },
+                "candidates": [
+                    {
+                        "package": "motion-dom",
+                        "unique_compressed_attribution": 51755,
+                        "route": null,
+                        "roots": [],
+                        "targets": [],
+                        "missing_roots": 0,
+                        "status": "attribution-only investigation; exact emitted identity membership is unavailable",
+                        "cut": [],
+                        "cut_status": "A directed cut cannot be established for this attributed contributor because no exact emitted module membership joins to it."
+                    },
+                    {
+                        "package": "framer-motion",
+                        "unique_compressed_attribution": 11115,
+                        "route": null,
+                        "roots": [],
+                        "targets": [],
+                        "missing_roots": 0,
+                        "status": "attribution-only investigation; exact emitted identity membership is unavailable",
+                        "cut": [],
+                        "cut_status": "A directed cut cannot be established for this attributed contributor because no exact emitted module membership joins to it."
+                    },
+                    {
+                        "package": "lucide-react",
+                        "unique_compressed_attribution": 10407,
+                        "route": "/quiz/[quiz_id]",
+                        "roots": [
+                            "[project]/app/error.tsx [app-client] (ecmascript)",
+                            "[project]/app/not-found.tsx [app-client] (ecmascript)",
+                            "[project]/components/header.tsx [app-client] (ecmascript)",
+                            "[project]/components/take-quiz-page.tsx [app-client] (ecmascript)",
+                            "[project]/components/ui/toaster.tsx [app-client] (ecmascript)",
+                            "[project]/components/ui/tooltip.tsx [app-client] (ecmascript)",
+                            "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@types+node@26.6.5_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/next/dist/client/app-dir/link.js [app-client] (ecmascript)",
+                            "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@types+node@26.6.5_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/next/dist/client/app-next-turbopack.js [app-client] (ecmascript)",
+                            "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@types+node@26.6.5_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/next/dist/client/components/builtin/global-error.js [app-client] (ecmascript)",
+                            "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@types+node@26.6.5_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/next/dist/client/components/client-page.js [app-client] (ecmascript)",
+                            "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@types+node@26.6.5_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/next/dist/client/components/client-segment.js [app-client] (ecmascript)",
+                            "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@types+node@26.6.5_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/next/dist/client/components/http-access-fallback/error-boundary.js [app-client] (ecmascript)",
+                            "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@types+node@26.6.5_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/next/dist/client/components/layout-router.js [app-client] (ecmascript)",
+                            "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@types+node@26.6.5_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/next/dist/client/components/render-from-template-context.js [app-client] (ecmascript)",
+                            "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@types+node@26.6.5_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/next/dist/lib/framework/boundary-components.js [app-client] (ecmascript)",
+                            "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@types+node@26.6.5_react-dom@19.3.1_react@19.3.1__react@19.3.1/node_modules/next/dist/lib/metadata/generate/icon-mark.js [app-client] (ecmascript)",
+                            "[project]/providers/next-auth-session-provider.tsx [app-client] (ecmascript)",
+                            "[project]/providers/theme-provider.tsx [app-client] (ecmascript)"
+                        ],
+                        "targets": [
+                            "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/Icon.mjs [app-client] (ecmascript)",
+                            "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/createLucideIcon.mjs [app-client] (ecmascript)",
+                            "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/arrow-right.mjs [app-client] (ecmascript) <export default as ArrowRight>",
+                            "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/circle-question-mark.mjs [app-client] (ecmascript) <export default as HelpCircle>",
+                            "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/copy.mjs [app-client] (ecmascript) <export default as Copy>",
+                            "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/house.mjs [app-client] (ecmascript) <export default as Home>"
+                        ],
+                        "missing_roots": 0,
+                        "status": "provisional; render optionality and browser timing are unverified",
+                        "cut": [],
+                        "cut_capacity": 3280,
+                        "cut_status": "No editable cut with bootstrap, client-reference roots, layouts and dependency internals protected."
+                    }
+                ],
+                "client_dependency_scan": [
+                    {
+                        "source": "components/auth/logout-page.tsx",
+                        "emitted_identities": [
+                            "[project]/components/auth/logout-page.tsx [app-client] (ecmascript)"
+                        ],
+                        "routes": ["/logout"],
+                        "compressed_attribution": 399,
+                        "disposition": "unverified",
+                        "reason": "Ownership and surviving implementation need manual inspection; naming and module membership do not establish a leak.",
+                        "server_action_source": false
+                    },
+                    {
+                        "source": "components/auth/sign-in-with-git-hub.tsx",
+                        "emitted_identities": [
+                            "[project]/components/auth/sign-in-with-git-hub.tsx [app-client] (ecmascript)"
+                        ],
+                        "routes": ["/login", "/register"],
+                        "compressed_attribution": 218,
+                        "disposition": "unverified",
+                        "reason": "Ownership and surviving implementation need manual inspection; naming and module membership do not establish a leak.",
+                        "server_action_source": false
+                    },
+                    {
+                        "source": "components/auth/sign-in-with-google.tsx",
+                        "emitted_identities": [
+                            "[project]/components/auth/sign-in-with-google.tsx [app-client] (ecmascript)"
+                        ],
+                        "routes": ["/login", "/register"],
+                        "compressed_attribution": 204,
+                        "disposition": "unverified",
+                        "reason": "Ownership and surviving implementation need manual inspection; naming and module membership do not establish a leak.",
+                        "server_action_source": false
+                    },
+                    {
+                        "source": "hooks/auth/use-session.ts",
+                        "emitted_identities": [
+                            "[project]/hooks/auth/use-session.ts [app-client] (ecmascript)"
+                        ],
+                        "routes": [
+                            "/",
+                            "/_not-found",
+                            "/about",
+                            "/contact-us",
+                            "/cookie-policy",
+                            "/login",
+                            "/logout",
+                            "/privacy-policy",
+                            "/quiz",
+                            "/quiz/[quiz_id]",
+                            "/quiz/generate",
+                            "/quiz/view/[quiz_id]",
+                            "/register",
+                            "/settings",
+                            "/terms-of-service"
+                        ],
+                        "compressed_attribution": 69,
+                        "disposition": "unverified",
+                        "reason": "Ownership and surviving implementation need manual inspection; naming and module membership do not establish a leak.",
+                        "server_action_source": false
+                    }
+                ],
+                "possible_server_only_leaks": [],
+                "suppressed_matches": [],
+                "coverage": {
+                    "unsupported_client_js_outputs": [],
+                    "unknown_route_entries": [],
+                    "unknown_route_groups": [],
+                    "groups_without_joined_trigger": 0,
+                    "sync_dependencies_absent_from_emitted_subgraph": 69,
+                    "attribution_conflicts": 0,
+                    "action_like_identities_requiring_source_mapping": 2,
+                    "limits": [
+                        "All minimum cuts are provisional; optionality, module side effects and actual mount/preload timing have not been behavior-tested.",
+                        "Source-to-output attribution is distinct from exact module identity; ambiguous community bytes are excluded from community ranking.",
+                        "No production browser requests, cold-navigation timing, interaction timing, Web Vitals or emitted implementation contents were inspected.",
+                        "Potential Server Action stubs and ownership matches remain unverified until source-to-reference mapping and emitted contents are inspected."
+                    ]
+                }
+            }
+        }
+    ],
+    "verification": [
+        {
+            "app": ".",
+            "command": "pnpm run typecheck",
+            "exit_code": 0,
+            "seconds": 1.7
+        },
+        {
+            "app": ".",
+            "command": "pnpm run lint",
+            "exit_code": 0,
+            "seconds": 3.0
+        },
+        {
+            "app": "(repository)",
+            "command": "git diff --check",
+            "exit_code": 0,
+            "seconds": 0.0
+        }
+    ]
+}

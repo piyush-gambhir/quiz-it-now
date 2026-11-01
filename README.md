@@ -150,7 +150,7 @@ QuizItNow is built as a modern full-stack application with the following archite
 - **Docker**: Containerization with multi-stage builds
 - **Docker Compose**: Local development orchestration
 - **Vercel**: Optimized deployment platform
-- **Node.js 26.12.1-alpine**: Production runtime
+- **Node.js 26.13.0-alpine**: Production runtime
 
 ## 📁 Project Structure
 
@@ -317,7 +317,7 @@ quiz-it-now/
 
 ### Prerequisites
 
-- **Node.js 26.12.1** for local development (Node 24.22.1 remains supported for Vercel)
+- **Node.js 26.13.0** for local development (Node Vercel selects Node 26 through `engines.node`)
 - **pnpm 12.15.0**
 - **MongoDB** (local or Atlas cluster)
 - **NVIDIA API Key** (primary) or **OpenAI API Key** (fallback)
