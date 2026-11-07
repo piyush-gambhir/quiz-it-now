@@ -21,7 +21,7 @@
         "@aws-sdk/client-s3": "^3.1159.0",
         "@aws-sdk/s3-presigned-post": "^3.1159.0",
         "@aws-sdk/s3-request-presigner": "^3.1159.0",
-        "@hookform/resolvers": "^6.0.2",
+        "@hookform/resolvers": "^7.0.2",
         "@mdx-js/loader": "^3.1.1",
         "@mdx-js/react": "^3.1.1",
         "@next/env": "^16.4.3",
