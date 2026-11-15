@@ -8,12 +8,10 @@ import {
 
 import { NextRequest, NextResponse } from 'next/server';
 
-// Lazy initialization of S3 client
 let s3Client: S3Client | null = null;
 
 function getS3Client(): S3Client {
     if (!s3Client) {
-        // Validate environment variables
         const {
             AWS_REGION,
             AWS_ACCESS_KEY_ID,
@@ -30,7 +28,6 @@ function getS3Client(): S3Client {
             throw new Error('Missing required AWS environment variables.');
         }
 
-        // Initialize S3 client
         s3Client = new S3Client({
             region: AWS_REGION,
             credentials: {

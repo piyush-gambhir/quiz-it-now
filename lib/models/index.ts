@@ -1,4 +1,3 @@
-// Export all models
 export { Account } from './account';
 export { Quiz } from './quiz';
 export { Session } from './session';

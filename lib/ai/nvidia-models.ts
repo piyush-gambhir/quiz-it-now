@@ -107,7 +107,6 @@ export async function fetchNvidiaOpenSourceModels() {
             return models;
         }
 
-        // Fallback: allow any open-source looking instruct model from the account.
         const dynamicModels = [...availableIds]
             .filter(
                 (id) =>

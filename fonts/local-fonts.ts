@@ -1,4 +1,3 @@
-// Local Font
 import localFont from 'next/font/local';
 
 export const NeueMontreal = localFont({

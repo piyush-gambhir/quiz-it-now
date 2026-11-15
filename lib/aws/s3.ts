@@ -7,7 +7,6 @@ import {
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-// Initialize S3 client
 const s3Client = new S3Client({
     region: env.AWS_REGION!,
     credentials: {
@@ -16,19 +15,17 @@ const s3Client = new S3Client({
     },
 });
 
-// Function to create a presigned URL for PUT operation
 const createPresignedUrl = async (
     bucketName: string,
     key: string,
 ): Promise<string> => {
     const command = new PutObjectCommand({ Bucket: bucketName, Key: key });
     const presignedUrl = await getSignedUrl(s3Client, command, {
-        expiresIn: 120, // URL valid for 2 minutes
+        expiresIn: 120,
     });
     return presignedUrl;
 };
 
-// Function to create a presigned POST URL
 const createPresignedUrlPost = async ({
     bucketName,
     key,
@@ -40,14 +37,13 @@ const createPresignedUrlPost = async ({
         Bucket: bucketName,
         Key: key,
         Conditions: [
-            ['content-length-range', 0, 1048576], // Limit to 1 MB
+            ['content-length-range', 0, 1048576],
         ],
-        Expires: 3600, // URL valid for 1 hour
+        Expires: 3600,
     });
     return post;
 };
 
-// Function to upload using the presigned URL
 export const uploadUsingPresignedUrl = async ({
     bucketName,
     key,
@@ -68,7 +64,6 @@ export const uploadUsingPresignedUrl = async ({
     return response;
 };
 
-// Function to upload using the presigned POST URL
 export const uploadUsingPresignedUrlPost = async ({
     bucketName,
     key,
@@ -96,7 +91,6 @@ export const uploadUsingPresignedUrlPost = async ({
     return response;
 };
 
-// Function to upload directly to S3
 export const uploadToS3 = async ({
     bucketName,
     key,

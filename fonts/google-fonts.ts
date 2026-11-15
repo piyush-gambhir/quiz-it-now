@@ -1,4 +1,3 @@
-// Google Fonts
 import {
     Bebas_Neue,
     DM_Serif_Display,

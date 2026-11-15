@@ -6,8 +6,6 @@ import {
     videoFileTypes,
 } from '@/utils/zod/file-types';
 
-// Temporarily disabled due to TypeScript issues
-// Placeholder exports to prevent import errors
 export const signUpSchema = z.object({
     email: z.string().email(),
     password: z.string().min(8),
