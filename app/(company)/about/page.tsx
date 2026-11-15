@@ -40,7 +40,6 @@ const values = [
 export default function AboutPage() {
     return (
         <main className="flex-grow">
-            {/* Hero Section */}
             <section className="py-20 px-8">
                 <div className="container mx-auto max-w-4xl text-center">
                     <h1 className="text-4xl md:text-5xl font-bold mb-6">
@@ -54,7 +53,6 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            {/* Story Section */}
             <section className="py-16 px-8 bg-muted">
                 <div className="container mx-auto max-w-4xl">
                     <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -93,7 +91,6 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            {/* Values Section */}
             <section className="py-20 px-8">
                 <div className="container mx-auto max-w-5xl">
                     <h2 className="text-3xl font-bold text-center mb-12">
@@ -121,7 +118,6 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            {/* CTA Section */}
             <section className="py-16 px-8 bg-primary text-primary-foreground">
                 <div className="container mx-auto max-w-3xl text-center">
                     <h2 className="text-3xl font-bold mb-4">

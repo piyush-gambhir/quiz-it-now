@@ -51,7 +51,6 @@ const Header = () => {
     return (
         <header className="sticky top-0 z-50 border-b border-border/60 bg-background/95 backdrop-blur-sm">
             <nav className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                {/* Logo */}
                 <Link href="/" className="flex items-center gap-2">
                     <div className="flex size-7 items-center justify-center rounded bg-primary text-primary-foreground text-xs font-bold">
                         Q
@@ -61,7 +60,6 @@ const Header = () => {
                     </span>
                 </Link>
 
-                {/* Desktop nav */}
                 <div className="hidden items-center gap-1 md:flex">
                     {navItems.map((item) => (
                         <Link
@@ -79,7 +77,6 @@ const Header = () => {
                     ))}
                 </div>
 
-                {/* Desktop auth */}
                 <div className="hidden items-center gap-2 md:flex">
                     <Button
                         variant="ghost"
@@ -152,7 +149,6 @@ const Header = () => {
                     )}
                 </div>
 
-                {/* Mobile */}
                 <div className="md:hidden">
                     <Sheet>
                         <SheetTrigger asChild>

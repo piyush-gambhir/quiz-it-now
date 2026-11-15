@@ -117,19 +117,16 @@ export default function InteractiveQuizPage({
         return () => clearTimeout(timeout);
     }, [handleNextQuestion, isAnswered, quizStarted, showResults, timer]);
 
-    // Keyboard navigation: 1-4 to select, Enter to advance
     useEffect(() => {
         if (!quizStarted || showResults) return;
 
         const handleKeyDown = (e: KeyboardEvent) => {
-            // If typing in an input, skip
             if (
                 e.target instanceof HTMLInputElement ||
                 e.target instanceof HTMLTextAreaElement
             )
                 return;
 
-            // Number keys to select answer
             if (!isAnswered && currentQuestion) {
                 const num = Number.parseInt(e.key, 10);
                 if (num >= 1 && num <= currentQuestion.options.length) {
@@ -141,7 +138,6 @@ export default function InteractiveQuizPage({
                 }
             }
 
-            // Enter to go to next question
             if (e.key === 'Enter' && isAnswered) {
                 e.preventDefault();
                 handleNextQuestion();
@@ -174,7 +170,6 @@ export default function InteractiveQuizPage({
 
     return (
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-            {/* Quiz info header */}
             <div className="mb-8">
                 <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
                     {quizData.quiz.title}
@@ -216,7 +211,6 @@ export default function InteractiveQuizPage({
                 <div className="space-y-6">
                     {!showResults ? (
                         <>
-                            {/* Progress bar */}
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="font-medium">
@@ -236,7 +230,6 @@ export default function InteractiveQuizPage({
                                 </p>
                             </div>
 
-                            {/* Question */}
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={currentQuestionIndex}
@@ -320,7 +313,6 @@ export default function InteractiveQuizPage({
                                 </motion.div>
                             </AnimatePresence>
 
-                            {/* Actions */}
                             <div className="flex items-center justify-between">
                                 <Button
                                     variant="ghost"
@@ -346,7 +338,6 @@ export default function InteractiveQuizPage({
                                 </Button>
                             </div>
 
-                            {/* Explanation */}
                             <AnimatePresence>
                                 {(showExplanation ||
                                     (isAnswered &&
@@ -372,7 +363,6 @@ export default function InteractiveQuizPage({
                             </AnimatePresence>
                         </>
                     ) : (
-                        /* Results */
                         <div className="space-y-6">
                             {(() => {
                                 const score = calculateScore();

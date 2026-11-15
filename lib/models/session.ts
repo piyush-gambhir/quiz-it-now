@@ -1,6 +1,5 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
-// Session Interface
 export interface ISession extends Document {
     sessionToken: string;
     userId: string;
@@ -9,7 +8,6 @@ export interface ISession extends Document {
     updatedAt: Date;
 }
 
-// Session Schema
 const SessionSchema = new Schema<ISession>(
     {
         sessionToken: { type: String, required: true, unique: true },
@@ -21,7 +19,6 @@ const SessionSchema = new Schema<ISession>(
     },
 );
 
-// Export Session Model
 export const Session: Model<ISession> =
     mongoose.models.Session ||
     mongoose.model<ISession>('Session', SessionSchema);

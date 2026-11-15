@@ -164,7 +164,6 @@ export default function QuizzesPage({
 
     return (
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 md:py-10">
-            {/* Header */}
             <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">
@@ -198,7 +197,6 @@ export default function QuizzesPage({
                 </div>
             </div>
 
-            {/* Empty state */}
             {currentQuizzes.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-border px-4 py-16 sm:py-20">
                     <div className="flex size-12 items-center justify-center rounded-full bg-muted">
@@ -220,14 +218,12 @@ export default function QuizzesPage({
                     )}
                 </div>
             ) : (
-                /* Quiz card grid */
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {currentQuizzes.map((quiz) => (
                         <div
                             key={quiz.quizId}
                             className="group relative flex flex-col rounded-md border border-border bg-card transition-colors hover:border-foreground/15"
                         >
-                            {/* Card body */}
                             <div className="flex flex-1 flex-col p-4 sm:p-5">
                                 <div className="mb-3 flex items-start justify-between gap-2">
                                     <Badge
@@ -265,7 +261,6 @@ export default function QuizzesPage({
                                 </div>
                             </div>
 
-                            {/* Card footer actions */}
                             <div className="flex items-center border-t border-border">
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -341,7 +336,6 @@ export default function QuizzesPage({
                 </div>
             )}
 
-            {/* Pagination */}
             {totalPages > 1 && (
                 <div className="mt-8 flex items-center justify-center">
                     <Pagination>
@@ -384,7 +378,6 @@ export default function QuizzesPage({
                 </div>
             )}
 
-            {/* Delete confirmation dialog */}
             <AlertDialog
                 open={!!deleteTarget}
                 onOpenChange={(open) => !open && setDeleteTarget(null)}

@@ -1,19 +1,7 @@
 import logger from '@/lib/logger/winston';
 
-/**
- * Transcribe audio to text using Whisper
- * Note: This is a placeholder implementation. For production use:
- * 1. Use OpenAI's Whisper API
- * 2. Use a local Whisper implementation
- * 3. Use another speech-to-text service
- */
 export async function audioToText(audioPath: string): Promise<string> {
     try {
-        // TODO: Implement actual Whisper transcription
-        // Options:
-        // 1. OpenAI Whisper API: https://platform.openai.com/docs/guides/speech-to-text
-        // 2. Local Whisper: Use whisper-node or other Node.js bindings
-        // 3. Alternative services: AssemblyAI, Deepgram, etc.
 
         logger.warn('audioToText is not fully implemented. Using placeholder.');
 
@@ -26,10 +14,6 @@ export async function audioToText(audioPath: string): Promise<string> {
     }
 }
 
-/**
- * Transcribe audio using OpenAI Whisper API
- * Requires OPENAI_API_KEY environment variable
- */
 export async function transcribeWithOpenAI(audioFile: File): Promise<string> {
     try {
         const formData = new FormData();

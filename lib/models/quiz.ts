@@ -79,7 +79,6 @@ const QuizSchema = new Schema<IQuiz>(
     { timestamps: true },
 );
 
-// Create compound index for efficient queries
 QuizSchema.index({ userId: 1, createdAt: -1 });
 
 export const Quiz =

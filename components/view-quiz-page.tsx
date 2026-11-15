@@ -91,7 +91,6 @@ export default function ViewQuizPage({
 
     return (
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-6 md:py-10">
-            {/* Quiz header */}
             <div className="mb-8">
                 <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
                     {quizData.quiz.title}
@@ -122,7 +121,6 @@ export default function ViewQuizPage({
                 </div>
             </div>
 
-            {/* Metadata grid */}
             <div className="mb-8 rounded-md border border-border p-4 sm:p-5">
                 <div className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
                     <div>
@@ -190,7 +188,6 @@ export default function ViewQuizPage({
                 )}
             </div>
 
-            {/* Input preview */}
             <div className="mb-10 rounded-md border border-border p-4 sm:p-5">
                 <p className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                     Source Input
@@ -236,7 +233,6 @@ export default function ViewQuizPage({
                 )}
             </div>
 
-            {/* Questions */}
             <div className="space-y-4">
                 {quizData.quiz.questions.map((question, index) => (
                     <div

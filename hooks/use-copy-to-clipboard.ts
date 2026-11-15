@@ -15,7 +15,7 @@ function useCopyToClipboard(): UseCopyToClipboardResult {
             await navigator.clipboard.writeText(text);
             setIsCopied(true);
             setError(null);
-            setTimeout(() => setIsCopied(false), 2000); // Reset the isCopied state after 2 seconds
+            setTimeout(() => setIsCopied(false), 2000);
         } catch (err) {
             setError(err as Error);
             setIsCopied(false);

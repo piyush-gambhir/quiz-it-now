@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-// Verify the deployed file list, not the local node_modules that masks omissions.
 for (const route of ['quiz/generate', 'quiz/generate/ai']) {
     const trace = JSON.parse(
         readFileSync(`.next/server/app/api/${route}/route.js.nft.json`, 'utf8'),

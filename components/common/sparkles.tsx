@@ -8,7 +8,6 @@ import { motion, useAnimation } from 'framer-motion';
 import { useId } from 'react';
 
 import { cn } from '@/lib/utils';
-// Must be a stable reference: ParticlesProvider registers the plugins once.
 const initParticles = async (engine: Engine) => {
     await loadSlim(engine);
 };

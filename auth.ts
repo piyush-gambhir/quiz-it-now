@@ -28,12 +28,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
     session: {
         strategy: 'jwt',
-        maxAge: 30 * 24 * 60 * 60, // 30 days
+        maxAge: 30 * 24 * 60 * 60,
     },
     callbacks: {
         async jwt({ token, user, account, trigger }) {
             if (account && user) {
-                // Initial sign in - store user info in token
                 token.userId = user.id || user.email;
                 token.name = user.name;
                 token.email = user.email;
@@ -41,7 +40,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 token.provider = account.provider;
             }
 
-            // Handle token refresh if needed
             if (trigger === 'update' && user) {
                 token.name = user.name;
                 token.image = user.image;
@@ -59,7 +57,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             return session;
         },
         async signIn({ user }) {
-            // Add custom sign-in validation here if needed
             if (!user.email) {
                 return false;
             }

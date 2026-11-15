@@ -338,7 +338,6 @@ export async function POST(request: Request) {
             updatedAt: new Date(),
         };
 
-        // Only persist to database for authenticated users
         if (payload.userId !== 'anonymous') {
             try {
                 await connectToDatabase();

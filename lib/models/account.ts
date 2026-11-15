@@ -1,6 +1,5 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
-// Account Interface
 export interface IAccount extends Document {
     userId: string;
     type: string;
@@ -17,7 +16,6 @@ export interface IAccount extends Document {
     updatedAt: Date;
 }
 
-// Account Schema
 const AccountSchema = new Schema<IAccount>(
     {
         userId: { type: String, required: true, ref: 'User' },
@@ -37,10 +35,8 @@ const AccountSchema = new Schema<IAccount>(
     },
 );
 
-// Unique index
 AccountSchema.index({ provider: 1, providerAccountId: 1 }, { unique: true });
 
-// Export Account Model
 export const Account: Model<IAccount> =
     mongoose.models.Account ||
     mongoose.model<IAccount>('Account', AccountSchema);

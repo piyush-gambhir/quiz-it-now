@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 const HeroSection = () => {
     return (
         <section className="relative overflow-hidden border-b border-border/40">
-            {/* Subtle radial gradient */}
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_-10%,var(--primary)/0.08,transparent)]" />
 
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-20 pt-24 md:pb-28 md:pt-32">
@@ -50,7 +49,6 @@ const HeroSection = () => {
                     </div>
                 </div>
 
-                {/* Stats */}
                 <div className="mx-auto mt-16 grid max-w-xl grid-cols-3 divide-x divide-border text-center sm:mt-20">
                     <div className="px-4 sm:px-6">
                         <p className="text-xl font-bold tracking-tight sm:text-2xl">

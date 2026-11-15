@@ -22,8 +22,6 @@ export async function POST(request: Request) {
 
         logger.info(`Transcribing audio file: ${audioFile.name}`);
 
-        // Use OpenAI Whisper API for transcription
-        // Make sure OPENAI_API_KEY is set in environment variables
         const transcription = await transcribeWithOpenAI(audioFile);
 
         logger.info('Audio transcribed successfully');

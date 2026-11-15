@@ -10,7 +10,6 @@ import { Textarea } from '@/components/ui/textarea';
 import FileInputField from '@/components/common/file-input-field';
 import TextInputField from '@/components/common/text-input-field';
 
-// Mock function to simulate AI-generated questions (same as before)
 const generateQuestions = async (
     content: string,
     type: string,

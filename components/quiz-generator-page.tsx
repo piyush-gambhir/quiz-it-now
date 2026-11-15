@@ -248,7 +248,6 @@ export default function QuizGeneratorPage() {
 
         const isAuthenticated = status === 'authenticated' && session?.user?.id;
 
-        // File upload requires authentication (needs S3 + userId)
         if (inputType === 'file' && !isAuthenticated) {
             setError(
                 'Please log in to upload files. You can use text or link input without an account.',
@@ -306,7 +305,6 @@ export default function QuizGeneratorPage() {
                 if (isAuthenticated && result.data.quizId) {
                     router.push(`/quiz/view/${result.data.quizId}`);
                 } else {
-                    // Anonymous: show quiz inline
                     setGeneratedQuiz(result.data as QuizDocument);
                 }
                 return;
@@ -334,7 +332,6 @@ export default function QuizGeneratorPage() {
             <LoadingModal isOpen={loading} message={loadingMessage} />
 
             <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 md:py-14">
-                {/* Page header */}
                 <div className="mb-8 flex items-start justify-between">
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">
@@ -373,7 +370,6 @@ export default function QuizGeneratorPage() {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-8">
-                    {/* Step 1 — Content source */}
                     <section>
                         <div className="mb-4 flex items-center gap-2">
                             <span className="flex size-6 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
@@ -384,7 +380,6 @@ export default function QuizGeneratorPage() {
                             </h2>
                         </div>
 
-                        {/* Source type selector */}
                         <div className="mb-4 flex gap-2">
                             {[
                                 {
@@ -419,7 +414,6 @@ export default function QuizGeneratorPage() {
                             ))}
                         </div>
 
-                        {/* Text input */}
                         {inputType === 'text' && (
                             <div className="space-y-2">
                                 <Textarea
@@ -449,7 +443,6 @@ export default function QuizGeneratorPage() {
                             </div>
                         )}
 
-                        {/* File input */}
                         {inputType === 'file' && (
                             <div>
                                 {status !== 'authenticated' ? (
@@ -541,7 +534,6 @@ export default function QuizGeneratorPage() {
                             </div>
                         )}
 
-                        {/* Link input */}
                         {inputType === 'link' && (
                             <div className="space-y-1.5">
                                 <Input
@@ -557,7 +549,6 @@ export default function QuizGeneratorPage() {
                         )}
                     </section>
 
-                    {/* Step 2 — Settings */}
                     <section>
                         <div className="mb-4 flex items-center gap-2">
                             <span className="flex size-6 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
@@ -678,14 +669,12 @@ export default function QuizGeneratorPage() {
                         </div>
                     </section>
 
-                    {/* Error */}
                     {error && (
                         <Alert variant="destructive">
                             <AlertDescription>{error}</AlertDescription>
                         </Alert>
                     )}
 
-                    {/* Submit */}
                     <Button
                         type="submit"
                         className="h-11 w-full gap-2"
@@ -702,7 +691,6 @@ export default function QuizGeneratorPage() {
                     </Button>
                 </form>
 
-                {/* Inline quiz result for anonymous users */}
                 {generatedQuiz && (
                     <div className="mt-10 border-t border-border pt-10">
                         <div className="mb-6 flex items-center justify-between">

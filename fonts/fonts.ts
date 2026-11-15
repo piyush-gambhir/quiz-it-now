@@ -1,7 +1,5 @@
-// Local fonts
 import { NeueMontreal } from './local-fonts';
 
-// Google fonts
 import {
     BebasNeue,
     DMSerifDisplay,
